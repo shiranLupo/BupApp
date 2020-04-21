@@ -106,11 +106,15 @@ int main(int argc, char const *argv[])
         //     mqtt::token_ptr pulishToken(appClient.publish(msgPtr));
 
         mqtt::message_ptr subscribeMsgToken = mqtt::make_message(TOPIC1, appClientIP, QOS, true);
-        mqtt::token_ptr publishToken(appClient.publish(subscribeMsgToken));
-        publishToken->wait();
+        mqtt::token_ptr pubToken(appClient.publish(subscribeMsgToken));
+        pubToken->wait();
         cout << "...OK" << endl;
 
-       // publishToken->get_subscribe_response();
+       //clients should be subscribe to tis topic only to get lwt, consider case in consume
+        mqtt::token_ptr subToken(appClient.subscribe(TOPIC1,QOS));
+        pubToken->wait();
+        cout << "...OK" << endl;
+
 
     }
     catch (const std::exception &e)
