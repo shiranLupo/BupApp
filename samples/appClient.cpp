@@ -48,7 +48,7 @@ const char *STUB_LOCAL_IP = "100.10.102.9 ";
 const string DFLT_BROKER_ADDRESS{"tcp://localhost:1883"};
 //const string DFLT_SERVER_ADDRESS { "100.10.102.6" }; //pc ip
 
-const string TOPIC1("clientList");
+const string TOPIC1("subscribersList");
 
 const int QOS = 1; //TODO check QOS (0,1,2)
 
