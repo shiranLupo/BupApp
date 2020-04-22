@@ -48,10 +48,9 @@ const char *STUB_LOCAL_IP = "100.10.102.9 ";
 const string DFLT_BROKER_ADDRESS{"tcp://localhost:1883"};
 //const string DFLT_SERVER_ADDRESS { "100.10.102.6" }; //pc ip
 
-const string TOPIC1("subscribersList");
+const string subscribeToServerTopic("subscribersList");
 
 const int QOS = 1; //TODO check QOS (0,1,2)
-
 
 const auto TIMEOUT = std::chrono::seconds(10);
 
@@ -82,7 +81,7 @@ public:
 int main(int argc, char const *argv[])
 {
     string appClientIP(STUB_LOCAL_IP); //TODO get local ip
-    string TOPIC2(appClientIP + "backupPaths");
+    string backupChnlTopic = appClientIP + "\'backups";
 
     //optional to change broker by cmnd line TODO change set server by config
     string brokerAddress = (argc > 1) ? string(argv[1]) : DFLT_BROKER_ADDRESS;
@@ -100,50 +99,76 @@ int main(int argc, char const *argv[])
         //publish subscribe messeg TODO: wait until complite( server meanwhile will publish client new topic)
         cout << "\nSending subscribtion msg to server..." << endl;
         // example: https://stackoverflow.com/questions/49335001/get-local-ip-address-in-c
-
-        //     mqtt::message subscribeToService(TOPIC, appClientIP.c_str(), QOS, true);
-        //     mqtt::message_ptr msgPtr(&subscribeToService);
-        //     mqtt::token_ptr pulishToken(appClient.publish(msgPtr));
-
-        mqtt::message_ptr subscribeMsgToken = mqtt::make_message(TOPIC1, appClientIP, QOS, true);
-        mqtt::token_ptr pubToken(appClient.publish(subscribeMsgToken));
-        pubToken->wait();
+        mqtt::message_ptr subscribeMsgToken = mqtt::make_message(subscribeToServerTopic, appClientIP, QOS, true);
+        appClient.publish(subscribeMsgToken)->wait();
         cout << "...OK" << endl;
 
-       //clients should be subscribe to tis topic only to get lwt, consider case in consume
-        mqtt::token_ptr subToken(appClient.subscribe(TOPIC1,QOS));
-        pubToken->wait();
+        cout << "\nSubscribtion to get server disconnecting msg..." << endl;
+        //clients should be subscribed to this topic only to get lwt, consider case in consume
+        appClient.subscribe(subscribeToServerTopic, QOS)->wait();
         cout << "...OK" << endl;
 
+        cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
+        appClient.subscribe(backupChnlTopic, QOS)->wait();
+        cout << "...OK" << endl;
 
+        //use to thread #1 listen to cmnd line for backup cmnds publishing
+        //thread #2for recieving msgs from server
+
+        //thread 2
+        string msgTopic;
+        string msgPayload;
+        string newSubscriberIp;
+        string pathToBackUp;
+        // Consume messages
+        while (true)
+        {
+            // mqtt::const_message_ptr mp;
+            cout << "try consume_message" << endl;
+            auto msgPtr = appClient.consume_message();
+            if (!msgPtr)
+            {
+                break;
+            }
+            msgTopic = msgPtr->get_topic();
+            msgPayload = msgPtr->get_payload();
+            //TODO insert to vector of clients
+            //TODO here should perform subscription
+            if (msgTopic == backupChnlTopic)
+            {
+                cout << "Backup succeed! data is here : " << msgPayload << endl;
+            }
+        }
     }
     catch (const std::exception &e)
     {
         std::cerr << e.what() << '\n';
     }
 
-    //start while loop, wait for request for backup
-    try
+    //thread2
+    while (true)
     {
+
+        //start while loop, wait for request for backup
+
         //publish  messeg to privat topic that was created by server upon subscribe
         cout << "\nEnter path for backup..." << endl;
         string path;
-        getline(std::cin,path);
-       
-        cout << "\nSending backup request msg to server..." << endl;
+        getline(std::cin, path);
 
+        try
+        {
+            cout << "\nSending backup path msg to server..." << endl;
+            mqtt::message_ptr subscribeMsgToken = mqtt::make_message(backupChnlTopic, path, QOS, true);
+            appClient.publish(subscribeMsgToken)->wait();
+            cout << "...OK" << endl;
+            //  publishToken->get_subscribe_response();
+        }
 
-        mqtt::message_ptr subscribeMsgToken = mqtt::make_message(TOPIC2 ,path , QOS, true);
-        mqtt::delivery_token_ptr publishToken(appClient.publish(subscribeMsgToken));
-        publishToken->wait();
-        cout << "...OK" << endl;
-      //  publishToken->get_subscribe_response();
-
-    }
-
-    catch (const std::exception &e)
-    {
-        std::cerr << e.what() << '\n';
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
     }
 
     return 0;

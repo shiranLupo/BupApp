@@ -13,6 +13,9 @@
 //
 
 //TODO in wich topic to handle disconnection lwr and unsbscribe.
+//handle lwr
+//handle duplicated topic!
+
 // USAGE:
 //     mqttpp_chat <user> <group>
 
@@ -46,6 +49,8 @@ using namespace std;
 
 const string subscribersListTopic{"subscribersList"}; //here server get msgs from client to subscribe to the backup servies
 const char *STUB_LOCAL_IP = "100.10.102.5 ";
+const string LOCAL_IP = "100.10.102.5 ";
+
 //const string DFLT_BROKER_ADDRESS{"100.10.102.9 "};//TODO get broker ip
 const string DFLT_BROKER_ADDRESS{"tcp://localhost:1883"};
 // The QoS to use for publishing and subscribing
@@ -62,7 +67,7 @@ int main(int argc, char *argv[])
     // Tell the broker we don't want our own messages sent back to us.
     const bool NO_LOCAL = true;
 
-    auto lwt = mqtt::make_message(subscribersListTopic, "server was disconnected>>>", QOS, false);
+    auto lwt = mqtt::make_message(subscribersListTopic, "Server was disconnected>>>", QOS, false);
     // Set up the connect options
     mqtt::connect_options connOpts;
     connOpts.set_keep_alive_interval(20);
@@ -76,70 +81,81 @@ int main(int argc, char *argv[])
     // Set a callback for connection lost.
     // This just exits the app.
     serverClient.set_connection_lost_handler([](const std::string &) {
-        std::cout << "*** Connection Lost  ***" << std::endl;
+        std::cout << "*** Connection Lost  ***" << endl;
         exit(2);
     });
 
     try
     {
-        std::cout << "Connecting to the server " << brokerAddress
-                  << "..." << std::endl;
+        std::cout << "Connecting server to broker in: " << brokerAddress<< " ..." << endl;
         auto tok = serverClient.connect(connOpts);
         tok->wait();
-        std::cout << "...Ok" << std::endl;
+        std::cout << "...OK" << endl;
 
         // Subscribe to the topic using "no local" so that
         // we don't get own messages sent back to us
-        std::cout << "subscribing to clients list..." << std::endl;
+        std::cout << "Subscribing to clients list..." << std::endl;
         serverClient.subscribe(subscribersListTopic, QOS, subOptions)->wait();
 
         serverClient.start_consuming();
-        std::cout << "...Ok" << std::endl;
+        std::cout << "...OK" << endl;
 
         string msgTopic;
         string msgPayload;
-        string newSubscriberIp;
+        string subscriberIp;
         string pathToBackUp;
         // Consume messages
         while (true)
         {
-            std::chrono::duration<int, std::milli> ms(10000); // 3000 seconds
-           // mqtt::const_message_ptr mp;
-            auto mp = serverClient.consume_message();
-            if (!mp)
+            // mqtt::const_message_ptr mp;
+            auto msgPtr = serverClient.consume_message();
+            if (!msgPtr)
+            {
                 break;
-            msgTopic = mp->get_topic();
-            msgPayload = mp->get_payload();
+            }
+            msgTopic = msgPtr->get_topic();
+            msgPayload = msgPtr->get_payload();
             //TODO insert to vector of clients
             //TODO here should perform subscription
             if (msgTopic == subscribersListTopic)
             {
                 //handle subscription
-                newSubscriberIp = msgPayload;
-                cout << "This is subscribtion a msg" << endl;
-                mqtt::topic clientsOnlineTopic(serverClient, subscribersListTopic + "\'" + newSubscriberIp + "\'online", QOS, true);
+                subscriberIp = msgPayload;
+                cout << "Subscribtion request msg was recieved from: "<< subscriberIp << endl;
+                mqtt::topic clientsOnlineTopic(serverClient, subscribersListTopic + "\'" + subscriberIp + "\'online", QOS, true);
                 clientsOnlineTopic.subscribe()->wait();
-                
+
                 //TODO publish in online==true msg, lwr will change it to false . and subscribe to this topic
 
-                std::cout << "subscribing to new client backup req channel..." << std::endl;
-                mqtt::topic topicPerClientOnline(serverClient, newSubscriberIp + "\'online", QOS, true);
+                mqtt::topic topicPerClientOnline(serverClient, subscriberIp + "\'online", QOS, true);
                 topicPerClientOnline.subscribe()->wait();
 
+                std::cout << "Subscribing to new client backup req channel..." << std::endl;
                 //TODO publish in online==true msg, lwr will change it to false . and subscribe to this topic
-                mqtt::topic topicPerClientBackups(serverClient, newSubscriberIp + "\backups", QOS, true);
+                mqtt::topic topicPerClientBackups(serverClient, subscriberIp + "\'backups", QOS, true);
                 topicPerClientBackups.subscribe()->wait();
-                std::cout << "...Ok" << std::endl;
+                std::cout << "...OK" << endl;
             }
             else //backup request topic
             {
                 //handle unsbsribe or lwt from clients
-
+                subscriberIp = msgTopic;
+                pathToBackUp = msgPayload;
+                cout << "BackUp request msg was recieved from: "<< subscriberIp << endl;
+                string subscriberTopic =  subscriberIp + "\'backups";
+                string replyPayload = LOCAL_IP + "\'" + "..............";
                 // do backup from msgTopic= ip +path
                 // for publish success : to msgTopic
-                cout << "this is backup msg" << endl;
                 //msgTopic = path to client +
                 pathToBackUp = msgPayload;
+                cout << "Backingup data from : " << subscriberIp << "\'" << pathToBackUp << endl;
+                //TODO real backup
+                mqtt:: message_ptr replyPtr= mqtt::make_message( subscriberTopic,replyPayload,QOS, true);
+                cout << "Publishing to client : " << subscriberIp << " path of backup"<< endl;
+
+                serverClient.publish(replyPtr)->wait();
+                std::cout << "...OK" << endl;
+
             }
         }
 
@@ -152,38 +168,6 @@ int main(int argc, char *argv[])
                   << exc.what() << std::endl;
         return 1;
     }
-
-    // //TODO loop via all client and perform
-    // try
-    // {
-    //     std::cout << "subscribing to client " << clientTopic << " back up requests list..." << std::endl;
-    //     std::cout << "...Ok" << std::endl;
-    //     serverClient.start_consuming();
-    //     clientTopic = clientTopic + "backup";
-    //     serverClient.subscribe(clientTopic, QOS)->wait();
-    //     //TODO for each msg recieved: cout: backing up
-    //     std::cout << "working on client " << clientTopic << " requests ..." << std::endl;
-    //     // TODO handle backup request
-    //     // Consume messages
-    //     while (true)
-    //     {
-    //         std::chrono::duration<int, std::milli> ms(3000); // 3000 seconds
-    //         mqtt::const_message_ptr mp;
-    //         auto result = serverClient.try_consume_message_for(&mp, ms);
-    //         if (!result)
-    //             break;
-    //         pathToBackUp = mp->get_payload();
-
-    //         //TODO insert to vec tor of clients
-    //         //TODO here should perform subscription
-    //     }
-    //     serverClient.publish(clientTopic, "succes : backUpPath");
-    //     std::cout << "...Ok" << std::endl;
-    // }
-    // catch (const std::exception &e)
-    // {
-    //     std::cerr << e.what() << '\n';
-    // }
 
     return 0;
 }
