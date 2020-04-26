@@ -48,8 +48,8 @@
 using namespace std;
 
 const string subscribersListTopic{"subscribersList"}; //here server get msgs from client to subscribe to the backup servies
-const char *STUB_LOCAL_IP = "100.10.102.5 ";
-const string LOCAL_IP = "100.10.102.5 ";
+const char *STUB_LOCAL_IP = "100.10.102.2 ";
+const string LOCAL_IP = "100.10.102.2 ";
 
 //const string DFLT_BROKER_ADDRESS{"100.10.102.9 "};//TODO get broker ip
 const string DFLT_BROKER_ADDRESS{"tcp://localhost:1883"};
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
                 std::cout << "Subscribing to new client backup req channel..." << std::endl;
                 //TODO publish in online==true msg, lwr will change it to false . and subscribe to this topic
-                mqtt::topic topicPerClientBackups(serverClient, subscriberIp + "\'backups", QOS, true);
+                mqtt::topic topicPerClientBackups(serverClient, subscriberIp + "\backups", QOS, true);
                 topicPerClientBackups.subscribe()->wait();
                 std::cout << "...OK" << endl;
             }
@@ -142,14 +142,21 @@ int main(int argc, char *argv[])
                 subscriberIp = msgTopic;
                 pathToBackUp = msgPayload;
                 cout << "BackUp request msg was recieved from: "<< subscriberIp << endl;
-                string subscriberTopic =  subscriberIp + "\'backups";
+                string subscriberTopic =  subscriberIp + "\backups";
                 string replyPayload = LOCAL_IP + "\'" + "..............";
                 // do backup from msgTopic= ip +path
                 // for publish success : to msgTopic
                 //msgTopic = path to client +
                 pathToBackUp = msgPayload;
+                //TODO make back up dir per cleint
+                string pathTarget = "~\'Desktop\'" +subscriberIp ;
                 cout << "Backingup data from : " << subscriberIp << "\'" << pathToBackUp << endl;
                 //TODO real backup
+                string cmnd ="scp -r pi@" + subscriberIp+ ":"+ pathToBackUp + pathTarget;
+                system(cmnd.c_str());
+                cout<<"Sl080518"<<endl;
+
+
                 mqtt:: message_ptr replyPtr= mqtt::make_message( subscriberTopic,replyPayload,QOS, true);
                 cout << "Publishing to client : " << subscriberIp << " path of backup"<< endl;
 
