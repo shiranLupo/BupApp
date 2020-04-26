@@ -2,7 +2,6 @@
 
 //appClient.h
 
-
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -17,35 +16,53 @@ using namespace std;
 namespace BupApp
 {
 
-class appClientConfigs
+const string SUBSCIBERS_LIST = "subscribersList";
+const string BACKUPS = "\'backups";
+const string PASSWORD = "\'password";
+
+class mqttConfigs
 {
 private:
     /* data */
-   string m_localIp;
-   string m_brokerAdress;
-
+    string m_localIp;
+    string m_brokerAdress;
+    int m_qos;
+    bool m_retained;
 
 public:
-    appClientConfigs();
-    ~appClientConfigs();
+    mqttConfigs(int argc, const char *argv[]);
+    ~mqttConfigs();
     string getLocalIp();
-    string getBrokerAdress();
-    bool getConfigs(); //will use ini file to get ip and broker address
+    string getBrokerAddress();
+    int getQos();
+    bool getRetained();
 
+    bool getConfigs(); //will use ini file to get ip and broker address
 };
 
-
-
-class appClient : private appClientConfigs
+class appClient : private mqttConfigs
 {
 private:
     /* data */
-    bool connectToServer(); 
+    mqtt::async_client_ptr m_appClient;
+    string m_clientId;
+    string m_clientPwd;
+    string m_backupChnlTopic;
+    string m_subscribeToServerTopic;
+    string m_pwdTopic;
+
+    string m_msgTopic;
+    string m_msgPayload;
+    // string m_newSubscriberIp;
+    // string m_pathToBackUp;
+
+    void connectToServer();
+    void setupConnection();
     void handleBackupRequest();
     void handleServerReplyMsg();
 
 public:
-    appClient(/* args */);
+    appClient(int argc, const char *argv[]);
     ~appClient();
 
     void init();
@@ -55,7 +72,5 @@ public:
     string getBackupRequestPath();
     string getBackupRepleyPath();
 };
-
-
 
 } //end of namespace BupApp

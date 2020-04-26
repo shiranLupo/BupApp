@@ -7,7 +7,9 @@ int main(int argc, char const *argv[])
 {
     cout<<"test main"<<endl;
     
-    BupApp::appClient pc;
+    BupApp::appClient pc(argc, argv);
+    pc.working();
+    pc.disconnect();
     
 
     return 0;

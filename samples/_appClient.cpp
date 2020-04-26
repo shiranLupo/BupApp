@@ -7,29 +7,221 @@ using namespace std;
 namespace BupApp
 {
 
-appClient::appClient(/* args */)
+appClient::appClient(int argc, const char *argv[]) : mqttConfigs(argc, argv),
+                                                     m_appClient(NULL),
+                                                     m_clientId(""),
+                                                     m_clientPwd(""),
+                                                     m_subscribeToServerTopic(SUBSCIBERS_LIST),
+                                                     m_backupChnlTopic(mqttConfigs::getLocalIp() + BACKUPS),
+                                                     m_pwdTopic(mqttConfigs::getLocalIp() + PASSWORD)
 {
-    cout<<"appClient Ctor"<<endl;
+    cout << "appClient Ctor" << endl;
 
+    cout << "Insert client ID:" << endl;
+    getline(cin, m_clientId);
+
+    cout << "Insert client password for ssh remote connection:" << endl;
+    getline(cin, m_clientPwd);
+
+    connectToServer();
+    setupConnection();
 }
 
 appClient::~appClient()
 {
-    cout<<"appClient Dtor"<<endl;
+    cout << "appClient Dtor" << endl;
+}
 
+void BupApp::appClient::connectToServer()
+{
+    string backupChnlTopic = mqttConfigs::getLocalIp() + "\'backups";
+
+    //optional to change broker by cmnd line TODO change set server by config
+    cout << "Initializing contact with broker " << mqttConfigs::getBrokerAddress() << "..." << endl;
+    m_appClient = std::make_shared<mqtt::async_client>(getBrokerAddress(), m_clientId);
+    try
+    {
+        //TODO do we need connect option obj? what its pros
+        //connecting client to broker, wait until complete;
+        m_appClient->connect()->wait();
+        cout << "...OK" << endl;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+void BupApp::appClient::setupConnection()
+{
+    try
+    {
+
+        //publish subscribe messeg TODO: wait until complite( server meanwhile will publish client new topic)
+        cout << "\nSending subscribtion msg to server..." << endl;
+        // example: https://stackoverflow.com/questions/49335001/get-local-ip-address-in-c
+        m_appClient->publish(m_subscribeToServerTopic, getLocalIp(), getQos(), getRetained())->wait();
+        cout << "...OK" << endl;
+
+        cout << "\nSubscribtion to get server disconnecting msg..." << endl;
+        //clients should be subscribed to this topic only to get lwt, consider case in consume
+        m_appClient->subscribe(m_subscribeToServerTopic, getQos())->wait();
+        cout << "...OK" << endl;
+
+        cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
+        m_appClient->subscribe(m_backupChnlTopic, getQos())->wait();
+        cout << "...OK" << endl;
+
+        cout << "\nSending password ..." << endl;
+        m_appClient->publish(m_pwdTopic, m_clientPwd, getQos(), getRetained())->wait();
+        cout << "...OK" << endl;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+void BupApp::appClient::working()
+{
+    // Consume messages
+    while (true)
+    {
+        try
+        { // mqtt::const_message_ptr mp;
+            cout << "try consume_message" << endl;
+            auto msgPtr = m_appClient->consume_message();
+            if (!msgPtr)
+            {
+                break;
+            }
+
+            m_msgTopic = msgPtr->get_topic();
+            m_msgPayload = msgPtr->get_payload();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+
+        //TODO let threads handle the msg
+        handleBackupRequest();
+        handleServerReplyMsg();
+    }
+}
+
+void::BupApp::appClient::disconnect()
+{
+    cout<<"dissconnect"<<endl;
+    
+}
+
+
+void BupApp::appClient::handleServerReplyMsg()
+{
+
+    //TODO insert to vector of clients
+    //TODO here should perform subscription
+
+    while (true)
+    {
+        try
+        { // mqtt::const_message_ptr mp;
+            cout << "try consume_message" << endl;
+            auto msgPtr = m_appClient->consume_message();
+            if (!msgPtr)
+            {
+                break;
+            }
+
+            m_msgTopic = msgPtr->get_topic();
+            m_msgPayload = msgPtr->get_payload();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+    }
+
+    if (m_msgTopic == m_backupChnlTopic)
+    {
+        cout << "Backup succeed! data is here : " << m_msgPayload << endl;
+    }
+}
+
+void BupApp::appClient::handleBackupRequest()
+{
+     while (true)
+    {
+
+        //start while loop, wait for request for backup
+
+        //publish  messeg to privat topic that was created by server upon subscribe
+        cout << "\nEnter path for backup..." << endl;
+        string path;
+        getline(std::cin, path);
+
+        try
+        {
+            cout << "\nSending backup path msg to server..." << endl;
+            m_appClient->publish(m_backupChnlTopic, path, getQos(), getRetained())->wait();
+            cout << "...OK" << endl;
+            //  publishToken->get_subscribe_response();
+        }
+
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////
 
-BupApp::appClientConfigs::appClientConfigs(/* args */)
+BupApp::mqttConfigs::mqttConfigs(int argc, const char *argv[]) : m_qos(1),
+                                                                 m_retained(true)
 {
-    cout<<"appClientConfigs Ctor"<<endl;
+    //optional to change broker by cmnd line TODO change set server by config
+    try
+    {
+        if (argc != 3)
+        {
+            throw;
+        }
+    }
+    catch (int argc)
+    {
+        std::cerr << "Broker address or local adress or both need to be insert"
+                  << " as follow: ./BupApp [local_ip] [broker_ip]" << endl;
+    }
+
+    m_localIp = argv[1];
+    m_brokerAdress = argv[2];
 }
 
-BupApp::appClientConfigs::~appClientConfigs()
+BupApp::mqttConfigs::~mqttConfigs()
 {
-    cout<<"appClientConfigs Dtor"<<endl;
+    cout << "mqttConfigs Dtor" << endl;
+}
 
+std::string BupApp::mqttConfigs::getLocalIp()
+{
+    return (mqttConfigs::m_localIp);
+}
+
+std::string BupApp::mqttConfigs::getBrokerAddress()
+{
+    return (mqttConfigs::m_brokerAdress);
+}
+
+bool BupApp::mqttConfigs::getRetained()
+{
+    return (m_retained);
+}
+
+int BupApp::mqttConfigs::getQos()
+{
+    return (m_qos);
 }
 
 } //end of namespace BupApp
