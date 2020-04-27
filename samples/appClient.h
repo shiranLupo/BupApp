@@ -17,8 +17,8 @@ namespace BupApp
 {
 
 const string SUBSCIBERS_LIST = "subscribersList";
-const string BACKUPS = "\'backups";
-const string PASSWORD = "\'password";
+const string BACKUPS = "/backups";
+const string PASSWORD = "/password";
 
 class mqttConfigs
 {

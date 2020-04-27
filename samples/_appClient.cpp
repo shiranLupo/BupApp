@@ -12,7 +12,7 @@ appClient::appClient(int argc, const char *argv[]) : mqttConfigs(argc, argv),
                                                      m_clientId(""),
                                                      m_clientPwd(""),
                                                      m_subscribeToServerTopic(SUBSCIBERS_LIST),
-                                                     m_backupChnlTopic(mqttConfigs::getLocalIp() + BACKUPS),
+                                                     m_backupChnlTopic(mqttConfigs::getLocalIp()),
                                                      m_pwdTopic(mqttConfigs::getLocalIp() + PASSWORD)
 {
     cout << "appClient Ctor" << endl;
@@ -34,7 +34,7 @@ appClient::~appClient()
 
 void BupApp::appClient::connectToServer()
 {
-    string backupChnlTopic = mqttConfigs::getLocalIp() + "\'backups";
+    string backupChnlTopic = mqttConfigs::getLocalIp();
 
     //optional to change broker by cmnd line TODO change set server by config
     cout << "Initializing contact with broker " << mqttConfigs::getBrokerAddress() << "..." << endl;
@@ -72,9 +72,9 @@ void BupApp::appClient::setupConnection()
         m_appClient->subscribe(m_backupChnlTopic, getQos())->wait();
         cout << "...OK" << endl;
 
-        cout << "\nSending password ..." << endl;
-        m_appClient->publish(m_pwdTopic, m_clientPwd, getQos(), getRetained())->wait();
-        cout << "...OK" << endl;
+        // cout << "\nSending password ..." << endl;
+        // m_appClient->publish(m_pwdTopic, m_clientPwd, getQos(), getRetained())->wait();
+        // cout << "...OK" << endl;
     }
     catch (const std::exception &e)
     {
@@ -84,30 +84,11 @@ void BupApp::appClient::setupConnection()
 
 void BupApp::appClient::working()
 {
-    // Consume messages
-    while (true)
-    {
-        try
-        { // mqtt::const_message_ptr mp;
-            cout << "try consume_message" << endl;
-            auto msgPtr = m_appClient->consume_message();
-            if (!msgPtr)
-            {
-                break;
-            }
-
-            m_msgTopic = msgPtr->get_topic();
-            m_msgPayload = msgPtr->get_payload();
-        }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << '\n';
-        }
-
+   
         //TODO let threads handle the msg
         handleBackupRequest();
         handleServerReplyMsg();
-    }
+    
 }
 
 void::BupApp::appClient::disconnect()
@@ -176,7 +157,7 @@ void BupApp::appClient::handleBackupRequest()
     }
 }
 
-///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 BupApp::mqttConfigs::mqttConfigs(int argc, const char *argv[]) : m_qos(1),
                                                                  m_retained(true)
