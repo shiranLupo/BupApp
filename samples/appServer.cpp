@@ -35,6 +35,7 @@
  *    Frank Pagliughi - initial implementation and documentation
  *******************************************************************************/
 
+#include <arpa/inet.h>
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -48,13 +49,22 @@
 using namespace std;
 
 const string subscribersListTopic{"subscribersList"}; //here server get msgs from client to subscribe to the backup servies
-const char *STUB_LOCAL_IP = "100.10.102.2 ";
-const string LOCAL_IP = "100.10.102.2 ";
+const char *STUB_LOCAL_IP = "100.10.102.5 ";
+const string LOCAL_IP = "100.10.102.5 ";
 
 //const string DFLT_BROKER_ADDRESS{"100.10.102.9 "};//TODO get broker ip
 const string DFLT_BROKER_ADDRESS{"tcp://localhost:1883"};
 // The QoS to use for publishing and subscribing
 const int QOS = 1;
+
+bool isIP4(string msgTopic)
+{
+
+    cout<< "perfome ip4 check"<<endl;
+    //int inet_pton(int af, const char *src, void *dst);
+    unsigned long  dst;
+    return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
+}
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -87,7 +97,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        std::cout << "Connecting server to broker in: " << brokerAddress<< " ..." << endl;
+        std::cout << "Connecting server to broker in: " << brokerAddress << " ..." << endl;
         auto tok = serverClient.connect(connOpts);
         tok->wait();
         std::cout << "...OK" << endl;
@@ -115,54 +125,64 @@ int main(int argc, char *argv[])
             }
             msgTopic = msgPtr->get_topic();
             msgPayload = msgPtr->get_payload();
+            cout << "OK... msg recieved (topic): " << msgPayload << " (" << msgTopic << ")" << endl;
+
             //TODO insert to vector of clients
             //TODO here should perform subscription
+            //TODOhandle pasword
+            //TODO make dir for each client
             if (msgTopic == subscribersListTopic)
             {
-                //handle subscription
+                //handle subscription 
                 subscriberIp = msgPayload;
-                cout << "Subscribtion request msg was recieved from: "<< subscriberIp << endl;
-                mqtt::topic clientsOnlineTopic(serverClient, subscribersListTopic + "\'" + subscriberIp + "\'online", QOS, true);
+                cout << "Subscribtion request msg was recieved from: " << subscriberIp << endl;
+                mqtt::topic clientsOnlineTopic(serverClient, subscribersListTopic + "/" + subscriberIp + "/online", QOS, true);
                 clientsOnlineTopic.subscribe()->wait();
 
                 //TODO publish in online==true msg, lwr will change it to false . and subscribe to this topic
 
-                mqtt::topic topicPerClientOnline(serverClient, subscriberIp + "\'online", QOS, true);
+                mqtt::topic topicPerClientOnline(serverClient, subscriberIp + "/online", QOS, true);
                 topicPerClientOnline.subscribe()->wait();
 
                 std::cout << "Subscribing to new client backup req channel..." << std::endl;
                 //TODO publish in online==true msg, lwr will change it to false . and subscribe to this topic
-                mqtt::topic topicPerClientBackups(serverClient, subscriberIp + "\backups", QOS, true);
+                mqtt::topic topicPerClientBackups(serverClient, subscriberIp, QOS, true);
                 topicPerClientBackups.subscribe()->wait();
                 std::cout << "...OK" << endl;
             }
-            else //backup request topic
+            else if (isIP4(msgTopic))
             {
-                //handle unsbsribe or lwt from clients
+                //need to find msgTopic in subscriber vector
+                cout << "msg topic is ip4 valid" << endl;
                 subscriberIp = msgTopic;
                 pathToBackUp = msgPayload;
-                cout << "BackUp request msg was recieved from: "<< subscriberIp << endl;
-                string subscriberTopic =  subscriberIp + "\backups";
-                string replyPayload = LOCAL_IP + "\'" + "..............";
-                // do backup from msgTopic= ip +path
-                // for publish success : to msgTopic
-                //msgTopic = path to client +
-                pathToBackUp = msgPayload;
-                //TODO make back up dir per cleint
-                string pathTarget = "~\'Desktop\'" +subscriberIp ;
-                cout << "Backingup data from : " << subscriberIp << "\'" << pathToBackUp << endl;
-                //TODO real backup
-                string cmnd ="scp -r pi@" + subscriberIp+ ":"+ pathToBackUp + pathTarget;
-                system(cmnd.c_str());
-                cout<<"Sl080518"<<endl;
+                cout << "BackUp request msg was recieved from: " << subscriberIp << endl;
+                // // do backup from msgTopic= ip +path
+                // // for publish success : to msgTopic
+                // //msgTopic = path to client +
+                // //TODO make back up dir per cleint
+                 string pathTarget = "~/Desktop/";
+                 //string pathTarget = "~/Desktop/" + subscriberIp;
 
+                // cout << "Backingup data from : " << subscriberIp << "/" << pathToBackUp << endl;
+                // //TODO real backup
+                 string cmnd = "scp -r pi@" + subscriberIp + ":" + pathToBackUp + " "+ pathTarget;
+                // // //  string cmnd ="scp -r pi@10.100.102.2:~/Desktop\blafolder11 ~/Desktop";
+                 cout<< "cmnd for sys is: "<<cmnd<<endl;
+                 system(cmnd.c_str());
+                
+            }
+            else // 
+            {
+                cout << "msg topic is:" << msgTopic << endl;
+                // // cout << "Sl080518" << endl;
+                // string replyPayload = LOCAL_IP + "/" + "..............";
 
-                mqtt:: message_ptr replyPtr= mqtt::make_message( subscriberTopic,replyPayload,QOS, true);
-                cout << "Publishing to client : " << subscriberIp << " path of backup"<< endl;
+                // mqtt::message_ptr replyPtr = mqtt::make_message(subscriberTopic, replyPayload, QOS, true);
+                // cout << "Publishing to client : " << subscriberIp << " path of backup" << endl;
 
-                serverClient.publish(replyPtr)->wait();
-                std::cout << "...OK" << endl;
-
+                // serverClient.publish(replyPtr)->wait();
+                // std::cout << "...OK" << endl;
             }
         }
 
