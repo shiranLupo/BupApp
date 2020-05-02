@@ -2,14 +2,16 @@
 
 //appClient.h
 
-#include <iostream>
-#include <cstdlib>
+#ifndef __appClient_h
+#define __appClient_h
+
 #include <string>
 #include <thread> // For sleep
 #include <atomic>
 #include <chrono>
 #include <cstring>
 #include "mqtt/async_client.h"
+#include "mqttConfigs.h"
 
 using namespace std;
 
@@ -17,28 +19,7 @@ namespace BupApp
 {
 
 const string SUBSCIBERS_LIST = "subscribersList";
-const string BACKUPS = "/backups";
 const string PASSWORD = "/password";
-
-class mqttConfigs
-{
-private:
-    /* data */
-    string m_localIp;
-    string m_brokerAdress;
-    int m_qos;
-    bool m_retained;
-
-public:
-    mqttConfigs(int argc, const char *argv[]);
-    ~mqttConfigs();
-    string getLocalIp();
-    string getBrokerAddress();
-    int getQos();
-    bool getRetained();
-
-    bool getConfigs(); //will use ini file to get ip and broker address
-};
 
 class appClient : private mqttConfigs
 {
@@ -74,3 +55,5 @@ public:
 };
 
 } //end of namespace BupApp
+
+#endif // end of ifndef

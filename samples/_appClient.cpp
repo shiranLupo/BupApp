@@ -1,6 +1,7 @@
 //@appClient.cpp
 
 #include "appClient.h"
+#include "mqttConfigs.h"
 
 using namespace std;
 
@@ -72,6 +73,12 @@ void BupApp::appClient::setupConnection()
         m_appClient->subscribe(m_backupChnlTopic, getQos())->wait();
         cout << "...OK" << endl;
 
+        cout << "\nPublish id and password..." << endl;
+        m_appClient->publish(m_backupChnlTopic + "/password" ,m_clientPwd, getQos(),RETAINED)->wait();
+        cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
+        m_appClient->publish(m_backupChnlTopic + "/id" ,m_clientId, getQos(),RETAINED)->wait();
+        cout << "...OK" << endl;
+
         // cout << "\nSending password ..." << endl;
         // m_appClient->publish(m_pwdTopic, m_clientPwd, getQos(), getRetained())->wait();
         // cout << "...OK" << endl;
@@ -124,7 +131,7 @@ void BupApp::appClient::handleServerReplyMsg()
         }
     }
 
-    if (m_msgTopic == m_backupChnlTopic)
+    if (m_msgTopic == m_backupChnlTopic )
     {
         cout << "Backup succeed! data is here : " << m_msgPayload << endl;
     }
@@ -157,52 +164,5 @@ void BupApp::appClient::handleBackupRequest()
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
-BupApp::mqttConfigs::mqttConfigs(int argc, const char *argv[]) : m_qos(1),
-                                                                 m_retained(true)
-{
-    //optional to change broker by cmnd line TODO change set server by config
-    try
-    {
-        if (argc != 3)
-        {
-            throw;
-        }
-    }
-    catch (int argc)
-    {
-        std::cerr << "Broker address or local adress or both need to be insert"
-                  << " as follow: ./BupApp [local_ip] [broker_ip]" << endl;
-    }
-
-    m_localIp = argv[1];
-    m_brokerAdress = argv[2];
-}
-
-BupApp::mqttConfigs::~mqttConfigs()
-{
-    cout << "mqttConfigs Dtor" << endl;
-}
-
-std::string BupApp::mqttConfigs::getLocalIp()
-{
-    return (mqttConfigs::m_localIp);
-}
-
-std::string BupApp::mqttConfigs::getBrokerAddress()
-{
-    return (mqttConfigs::m_brokerAdress);
-}
-
-bool BupApp::mqttConfigs::getRetained()
-{
-    return (m_retained);
-}
-
-int BupApp::mqttConfigs::getQos()
-{
-    return (m_qos);
-}
 
 } //end of namespace BupApp

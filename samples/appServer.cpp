@@ -35,7 +35,6 @@
  *    Frank Pagliughi - initial implementation and documentation
  *******************************************************************************/
 
-#include <arpa/inet.h>
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -57,14 +56,7 @@ const string DFLT_BROKER_ADDRESS{"tcp://localhost:1883"};
 // The QoS to use for publishing and subscribing
 const int QOS = 1;
 
-bool isIP4(string msgTopic)
-{
 
-    cout<< "perfome ip4 check"<<endl;
-    //int inet_pton(int af, const char *src, void *dst);
-    unsigned long  dst;
-    return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
-}
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -155,18 +147,19 @@ int main(int argc, char *argv[])
                 //need to find msgTopic in subscriber vector
                 cout << "msg topic is ip4 valid" << endl;
                 subscriberIp = msgTopic;
+                
                 pathToBackUp = msgPayload;
                 cout << "BackUp request msg was recieved from: " << subscriberIp << endl;
                 // // do backup from msgTopic= ip +path
                 // // for publish success : to msgTopic
                 // //msgTopic = path to client +
                 // //TODO make back up dir per cleint
-                 string pathTarget = "~/Desktop/";
+                 string pathTarget = subscriberIp + ":~/Desktop/";
                  //string pathTarget = "~/Desktop/" + subscriberIp;
 
                 // cout << "Backingup data from : " << subscriberIp << "/" << pathToBackUp << endl;
                 // //TODO real backup
-                 string cmnd = "scp -r pi@" + subscriberIp + ":" + pathToBackUp + " "+ pathTarget;
+                 string cmnd = "scp -r shiranLupo@" + subscriberIp + ":" + pathToBackUp + " "+ pathTarget;
                 // // //  string cmnd ="scp -r pi@10.100.102.2:~/Desktop\blafolder11 ~/Desktop";
                  cout<< "cmnd for sys is: "<<cmnd<<endl;
                  system(cmnd.c_str());
