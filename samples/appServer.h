@@ -9,8 +9,9 @@
 #include <chrono>
 #include <cstring>
 #include <vector>
-#include <fstream> //get public key
-#include <iostream>     // std::cin, std::cout
+#include <fstream>  //get public key
+#include <iostream> // std::cin, std::cout
+#include <algorithm> //find client
 
 #include "mqtt/async_client.h"
 #include "mqttConfigs.h"
@@ -43,12 +44,10 @@ namespace BupApp
         string m_publicKey;
         mqtt::async_client_ptr m_appServer;
         vector<utils::client> m_clients;
-       utils::client m_currClient;
+        utils::client m_currClient;
 
         string m_commonServerClientTopic;
-
-        string m_msgTopic;
-        string m_msgPayload;
+        mqtt::const_message_ptr m_msgPtr;
         string m_subscriberIp;
         string m_pathToBackUp;
 
@@ -57,6 +56,8 @@ namespace BupApp
         void handleBackupRequest();
         void handleNewSubscriber();
         msgType getTopicType(string topic);
+        client searchForClient();
+    
         //  void mkSubscriberDir(); //TODO
         // setBackupTarget(); TODO
 

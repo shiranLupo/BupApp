@@ -61,15 +61,6 @@ namespace utils
         cout << m_pwd << endl;
     }
 
-    bool client::isIP4(string msgTopic)
-    {
-
-        cout << "perfome ip4 check" << endl;
-        //int inet_pton(int af, const char *src, void *dst);
-        unsigned long dst;
-        return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
-    }
-
     string client::getIp()
     {
         return (m_ip);
@@ -77,6 +68,15 @@ namespace utils
     string client::getUser()
     {
         return (m_user);
+    }
+
+    bool isIP4(string msgTopic)
+    {
+
+        cout << "perfome ip4 check" << endl;
+        //int inet_pton(int af, const char *src, void *dst);
+        unsigned long dst;
+        return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
     }
 
 } //end namespace utils
