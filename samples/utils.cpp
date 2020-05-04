@@ -70,6 +70,17 @@ namespace utils
         return (m_user);
     }
 
+    bool client::operator==(client lft)
+    {
+        return (this->getUser()== lft.getUser() && this->getIp()== lft.getIp() ? true : false);
+    }
+
+    bool client::operator!= (client lft)
+    {
+        return(!(*this== lft));
+    }
+
+
     bool isIP4(string msgTopic)
     {
 

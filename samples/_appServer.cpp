@@ -96,26 +96,29 @@ namespace BupApp
             }
             // TODO msg class
             // TODO seprete client class from utils
-            else 
+            else
             {
-               if (isIP4(m_msgPtr->get_topic()))
-                handleBackupRequest();
+                if (isIP4(m_msgPtr->get_topic()))
+                {
+                    cout << "msg topic is ip4 valid" << endl;
+                    handleBackupRequest();
+                    // TODO handleReplyBackupRequest();
+                }
+
                 // else
-            // {
-            //     cout << "msg recieved is not new suscriber or backup req " << endl;
+                // {
+                //     cout << "msg recieved is not new suscriber or backup req " << endl;
 
-            //     // // cout << "Sl080518" << endl;
-            //     // string replyPayload = LOCAL_IP + "/" + "..............";
+                //     // // cout << "Sl080518" << endl;
+                //     // string replyPayload = LOCAL_IP + "/" + "..............";
 
-            //     // mqtt::message_ptr replyPtr = mqtt::make_message(subscriberTopic, replyPayload, QOS, true);
-            //     // cout << "Publishing to client : " << subscriberIp << " path of backup" << endl;
+                //     // mqtt::message_ptr replyPtr = mqtt::make_message(subscriberTopic, replyPayload, QOS, true);
+                //     // cout << "Publishing to client : " << subscriberIp << " path of backup" << endl;
 
-            //     // serverClient.publish(replyPtr)->wait();
-            //     // std::cout << "...OK" << endl;
-            // }
+                //     // serverClient.publish(replyPtr)->wait();
+                //     // std::cout << "...OK" << endl;
+                // }
             }
-
-           
         }
 
         m_appServer->stop_consuming();
@@ -186,14 +189,17 @@ namespace BupApp
 
     void BupApp::appServer::handleBackupRequest()
     {
+
         string m_subscriberIp = m_msgPtr->get_topic();
         string m_pathToBackUp = m_msgPtr->get_payload();
         //TODO should find the client in the vector
-        //need to find msgTopic in subscriber vector
-        // m_client.
-        cout << "msg topic is ip4 valid" << endl;
+        string user = searchForClient().getUser();
+
         cout << "BackUp request msg was recieved from: " << m_subscriberIp << endl;
-        string pathTarget = m_subscriberIp + ":~/Desktop/";
+        cout << "from this is the user : "<< user <<endl;
+
+
+        string pathTarget = mqttConfigs::getLocalIp() + ":~/Desktop/";
 
         if (m_subscriberIp != mqttConfigs::getLocalIp())
         {
@@ -201,7 +207,7 @@ namespace BupApp
             //TODO make back up dir per cleint
             //string pathTarget = "~/Desktop/" + subscriberIp;
 
-            string cmnd = "scp -r shiranLupo@" + m_subscriberIp + ":" + m_pathToBackUp + " " + pathTarget;
+            string cmnd = "scp -r "+ user + "@" + m_subscriberIp + ":" + m_pathToBackUp + " " + pathTarget;
             cout << "cmnd for sys is: " << cmnd << endl;
             system(cmnd.c_str());
         }
@@ -210,6 +216,21 @@ namespace BupApp
             cout << "This is local backup: no need to use scp" << endl;
             //TODO hanlde local backup
         }
+    }
+
+    client BupApp::appServer::searchForClient()
+    {
+        auto itr = m_clients.begin();
+        for (; itr != m_clients.end() && itr->getIp() != m_msgPtr->get_topic(); itr++)
+        {
+        }
+
+        if (itr != m_clients.end())
+        {
+            return (*itr);
+        }
+
+        return (client(""));
     }
 
     // msgType BupApp::appServer::getTopicType(string topic)

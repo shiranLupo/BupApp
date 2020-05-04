@@ -35,6 +35,8 @@ public:
     void printClient();
     string getIp();
     string getUser();
+    bool operator==(client lft);
+    bool operator!= (client lft);
 };
 
 
