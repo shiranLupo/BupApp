@@ -26,11 +26,9 @@ class appClient : private mqttConfigs
 private:
     /* data */
     mqtt::async_client_ptr m_appClient;
-    string m_clientId;
-    string m_clientPwd;
-    string m_backupChnlTopic;
+    string m_subscribeMsg;
+    string m_privateChnl;
     string m_subscribeToServerTopic;
-    string m_pwdTopic;
 
     string m_msgTopic;
     string m_msgPayload;
