@@ -17,7 +17,6 @@ using namespace std;
 namespace utils
 {
 
-
 class client
 {
 private:
@@ -25,16 +24,16 @@ private:
     string m_ip;
     string m_user;
     string m_pwd;
-    
+
     bool isIP4(string msgTopic);
 
-    
 public:
     client(string msg);
     ~client();
     void printClient();
+    string getIp();
+    string getUser();
 };
-
 
 class CLog
 {
