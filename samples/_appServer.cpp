@@ -9,7 +9,7 @@ using namespace utils;
 namespace BupApp
 {
 
-    appServer::appServer(int argc, const char *argv[]) : mqttConfigs(argc, argv), m_publicKey(""),
+    appServer::appServer(int argc, const char *argv[]) : mqttConfigs(argc, argv),
                                                          m_appServer(NULL), m_msgPtr(NULL),
                                                          m_commonServerClientTopic(SUBSCIBERS_LIST), m_currClient("- - -"),
                                                          m_subscriberIp(""), m_pathToBackUp("")
@@ -17,8 +17,9 @@ namespace BupApp
     {
         //CLog::Write(CLog::Debug, "appServer Ctor\n");
         cout << "app server ctor" << endl;
-        std::string m_publicKey = getPublicKey();
-
+       // std::string m_publicKey = getPublicKey();
+         getPublicKey(m_publicKey);
+        cout << "this is the public key to send 1:" << m_publicKey << endl;
         connectToServer();
         setupConnection();
         //TODO set dir for backup, deafualt is Desktop;
@@ -145,7 +146,9 @@ namespace BupApp
             std::cout << "...OK" << endl;
 
             std::cout << "Sending new subscriber public key via private chnl..." << std::endl;
-            topicPerClient.publish(m_publicKey)->wait();
+            cout << "this is the public key to send 2:" << m_publicKey << endl;
+
+            topicPerClient.publish(m_publicKey.c_str(), m_publicKey.size(), QOS, RETAINED)->wait();
             std::cout << "...OK" << endl;
 
             //TODOcreate dir per client
@@ -161,30 +164,19 @@ namespace BupApp
 
     //TODO in init server only once
 
-    string BupApp::appServer::getPublicKey()
+    void BupApp::appServer::getPublicKey(string &pubkey)
     {
         cout << "getPubKey" << endl;
-
-        fstream in_file(PUBLIC_KEY_PATH);
-        if (!in_file)
-        {
-            cout << "can not get public key. Error: in opening file" << endl;
-            return ("");
-        }
-
-        string ret;
-        char c;
-        while (in_file.get(c)) // loop getting single characters
-        {
-            ret += c;
-        }
-
-        if (ret.size() != 415)
+        pubkey = getTxtFromFile(PUBLIC_KEY_PATH);
+       
+        cout << pubkey.size() << endl
+             << pubkey << endl;
+       
+        if (pubkey.size() != 415)
         {
             cout << "can not get public key. Error: not correct key" << endl;
-            return ("");
+            pubkey = "";
         }
-        return (ret);
     }
 
     void BupApp::appServer::handleBackupRequest()
@@ -196,8 +188,7 @@ namespace BupApp
         string user = searchForClient().getUser();
 
         cout << "BackUp request msg was recieved from: " << m_subscriberIp << endl;
-        cout << "from this is the user : "<< user <<endl;
-
+        cout << "from this is the user : " << user << endl;
 
         string pathTarget = mqttConfigs::getLocalIp() + ":~/Desktop/";
 
@@ -207,7 +198,7 @@ namespace BupApp
             //TODO make back up dir per cleint
             //string pathTarget = "~/Desktop/" + subscriberIp;
 
-            string cmnd = "scp -r "+ user + "@" + m_subscriberIp + ":" + m_pathToBackUp + " " + pathTarget;
+            string cmnd = "scp -r " + user + "@" + m_subscriberIp + ":" + m_pathToBackUp + " " + pathTarget;
             cout << "cmnd for sys is: " << cmnd << endl;
             system(cmnd.c_str());
         }

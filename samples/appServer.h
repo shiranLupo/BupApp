@@ -55,7 +55,7 @@ namespace BupApp
         void setupConnection();
         void handleBackupRequest();
         void handleNewSubscriber();
-        msgType getTopicType(string topic);
+        //msgType getTopicType(string topic);
         client searchForClient();
     
         //  void mkSubscriberDir(); //TODO
@@ -64,7 +64,7 @@ namespace BupApp
     public:
         appServer(int argc, const char *argv[]);
         ~appServer();
-        string getPublicKey();
+        void getPublicKey(string &pubkey);
 
         // // void init();
         void working();

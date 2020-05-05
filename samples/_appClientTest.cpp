@@ -15,9 +15,9 @@ int main(int argc, char const *argv[])
     pc.working();
     pc.disconnect();
     
-    // string msg = "10.100.102.2 shiranLupo ";
-    // client shiran(msg);
-    // shiran.printClient();
+//     string key = getTxtFromFile("/home/shiranlupo/.ssh/id_rsa.pub");
+//     cout<<key << key.size()<<endl;
+//    utils::addStrToFile(key, "/home/shiranlupo/.ssh/authorized_keys");
 
     return 0;
 }

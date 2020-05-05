@@ -72,14 +72,13 @@ namespace utils
 
     bool client::operator==(client lft)
     {
-        return (this->getUser()== lft.getUser() && this->getIp()== lft.getIp() ? true : false);
+        return (this->getUser() == lft.getUser() && this->getIp() == lft.getIp() ? true : false);
     }
 
-    bool client::operator!= (client lft)
+    bool client::operator!=(client lft)
     {
-        return(!(*this== lft));
+        return (!(*this == lft));
     }
-
 
     bool isIP4(string msgTopic)
     {
@@ -88,6 +87,41 @@ namespace utils
         //int inet_pton(int af, const char *src, void *dst);
         unsigned long dst;
         return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
+    }
+
+    void addStrToFile(string strToAppend, string targetFile)
+    {
+
+        cout << "addStrToFile:" << endl;
+        cout << targetFile << endl;
+        cout << strToAppend << endl;
+        auto start = std::chrono::system_clock::now();
+        std::ofstream out;
+
+        // std::ios::app is the open mode "append" meaning
+        // new data will be written to the end of the file.
+        out.open(targetFile, std::ios::app);
+
+        std::string str = strToAppend;
+        out << str;
+    }
+
+    string getTxtFromFile(string path)
+    {
+        fstream in_file(path);
+        if (!in_file)
+        {
+            cout << "can getTxtFromFile: in opening file" << endl;
+            return ("");
+        }
+
+        string ret;
+        char c;
+        while (in_file.get(c)) // loop getting single characters
+        {
+            ret += c;
+        }
+        return (ret);
     }
 
 } //end namespace utils

@@ -15,11 +15,13 @@
 
 using namespace std;
 
+
+
 namespace BupApp
 {
 
+const string SERVER_PUBLIC_KEY_TARGET = "/home/shiranlupo/.ssh/authorized_keys";
 const string SUBSCIBERS_LIST = "subscribersList";
-const string PASSWORD = "/password";
 
 class appClient : private mqttConfigs
 {
@@ -32,6 +34,7 @@ private:
 
     string m_msgTopic;
     string m_msgPayload;
+    string m_serverPublicKey;
     // string m_newSubscriberIp;
     // string m_pathToBackUp;
 
@@ -39,6 +42,7 @@ private:
     void setupConnection();
     void handleBackupRequest();
     void handleServerReplyMsg();
+    void handlePubKeyMsg(string msg);
 
 public:
     appClient(int argc, const char *argv[]);

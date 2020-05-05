@@ -9,8 +9,11 @@
 #include <cstdio>
 #include <cstdarg>
 #include <vector>
-#include <algorithm>
+//#include <algorithm>
 #include <iterator>
+#include <fstream>
+#include <chrono>
+
 
 using namespace std;
 
@@ -39,7 +42,9 @@ public:
     bool operator!= (client lft);
 };
 
-
+//append string to file, return true for success
+void addStrToFile(string strToAppend, string targetFile);
+string getTxtFromFile(string path);
 class CLog
 {
 public:
