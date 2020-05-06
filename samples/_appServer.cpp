@@ -17,8 +17,8 @@ namespace BupApp
     {
         //CLog::Write(CLog::Debug, "appServer Ctor\n");
         cout << "app server ctor" << endl;
-       // std::string m_publicKey = getPublicKey();
-         getPublicKey(m_publicKey);
+        // std::string m_publicKey = getPublicKey();
+        getPublicKey(m_publicKey);
         cout << "this is the public key to send 1:" << m_publicKey << endl;
         connectToServer();
         setupConnection();
@@ -100,27 +100,16 @@ namespace BupApp
             // TODO seprete client class from utils
             else
             {
-                if (isIP4(m_msgPtr->get_topic()))
+                if (isIP4(m_msgPtr->get_topic()) && !isClientExist(m_msgPtr->get_topic()))
                 {
                     cout << "msg topic is ip4 valid" << endl;
                     handleBackupRequest();
                     // TODO handleReplyBackupRequest();
                 }
 
-//TODO handle disconnect , do not remove from vector
-//TODO handle usbscribe , remove from vector
-                // else
-                // {
-                //     cout << "msg recieved is not new suscriber or backup req " << endl;
+                //TODO handle disconnect , do not remove from vector
+                //TODO handle usbscribe , remove from vector
 
-                //     // // cout << "Sl080518" << endl;
-                //     // string replyPayload = LOCAL_IP + "/" + "..............";
-
-                //     // mqtt::message_ptr replyPtr = mqtt::make_message(subscriberTopic, replyPayload, QOS, true);
-                //     // cout << "Publishing to client : " << subscriberIp << " path of backup" << endl;
-
-                //     // serverClient.publish(replyPtr)->wait();
-                //     // std::cout << "...OK" << endl;
                 // }
             }
         }
@@ -171,10 +160,10 @@ namespace BupApp
     {
         cout << "getPubKey" << endl;
         pubkey = getTxtFromFile(PUBLIC_KEY_PATH);
-       
+
         cout << pubkey.size() << endl
              << pubkey << endl;
-       
+
         if (pubkey.size() != 415)
         {
             cout << "can not get public key. Error: not correct key" << endl;
@@ -188,12 +177,12 @@ namespace BupApp
         string m_subscriberIp = m_msgPtr->get_topic();
         string m_pathToBackUp = m_msgPtr->get_payload();
         //TODO should find the client in the vector
-        string user = searchForClient().getUser();
+        string user = searchForClient(m_subscriberIp).getUser();
 
         cout << "BackUp request msg was recieved from: " << m_subscriberIp << endl;
         cout << "from this is the user : " << user << endl;
 
-        string pathTarget =  ":~/Desktop/";
+        string pathTarget = ":~/Desktop/";
         //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
 
         if (m_subscriberIp != mqttConfigs::getLocalIp())
@@ -213,10 +202,10 @@ namespace BupApp
         }
     }
 
-    client BupApp::appServer::searchForClient()
+    client BupApp::appServer::searchForClient(string ip)
     {
         auto itr = m_clients.begin();
-        for (; itr != m_clients.end() && itr->getIp() != m_msgPtr->get_topic(); itr++)
+        for (; itr != m_clients.end() && itr->getIp() != ip; itr++)
         {
         }
 
@@ -226,6 +215,22 @@ namespace BupApp
         }
 
         return (client(""));
+    }
+    bool BupApp::appServer::isClientExist(client &cli)
+    {
+        auto itr = m_clients.begin();
+        for (; itr != m_clients.end() && *itr!= cli; itr++)
+        {
+        }
+
+        return(itr != m_clients.end() ? true : false );
+    }
+
+      bool BupApp::appServer::isClientExist(string ip)
+    {
+        client ref("");
+        client found = searchForClient(ip);
+        return( found== ref ? false : true)
     }
 
     // msgType BupApp::appServer::getTopicType(string topic)

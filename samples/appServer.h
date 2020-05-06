@@ -57,8 +57,9 @@ namespace BupApp
         void handleBackupRequest();
         void handleNewSubscriber();
         //msgType getTopicType(string topic);
-        client searchForClient();
-    
+    bool isClientExist(client & );
+    bool isClientExist(string ip );
+        client searchForClient(string ip);
         //  void mkSubscriberDir(); //TODO
         // setBackupTarget(); TODO
 
