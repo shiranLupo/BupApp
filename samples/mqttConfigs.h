@@ -15,7 +15,7 @@
 using namespace std;
 
 const int QOS = 1;
-const bool RETAINED = false;
+const bool RETAINED = true;
 const bool NO_LOCAL = true;
 
 namespace BupApp

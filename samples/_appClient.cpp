@@ -57,6 +57,7 @@ namespace BupApp
             //publish subscribe messeg TODO: wait until complite( server meanwhile will publish client new topic)
             cout << "\nSending subscribtion msg to server..." << endl;
             // example: https://stackoverflow.com/questions/49335001/get-local-ip-address-in-c
+        m_appClient->start_consuming();
 
             m_appClient->publish(m_subscribeToServerTopic, m_subscribeMsg, getQos(), getRetained())->wait();
             cout << "...OK" << endl;
@@ -79,7 +80,6 @@ namespace BupApp
 
     void BupApp::appClient::working()
     {
-        m_appClient->start_consuming();
 
         //TODO let threads handle the msg
         handleServerReplyMsg();

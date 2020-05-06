@@ -89,10 +89,11 @@ namespace BupApp
             }
             // string msgTopic = m_msgPtr->get_topic();
             // string msgPayload = m_msgPtr->get_payload();
-            // cout << "OK... msg recieved (topic): " << msgPayload << " (" << msgTopic << ")" << endl;
+            // cout << "OK... msg recieved (topic): " << msgPayload << " (" << ":~/Desktop/"msgTopic << ")" << endl;
 
             if (m_msgPtr->get_topic() == m_commonServerClientTopic)
             {
+                //TODO if subscriber allredy exist do not operate handle
                 handleNewSubscriber(); //: add to vec, open topic and new Dir
             }
             // TODO msg class
@@ -106,6 +107,8 @@ namespace BupApp
                     // TODO handleReplyBackupRequest();
                 }
 
+//TODO handle disconnect , do not remove from vector
+//TODO handle usbscribe , remove from vector
                 // else
                 // {
                 //     cout << "msg recieved is not new suscriber or backup req " << endl;
@@ -190,7 +193,8 @@ namespace BupApp
         cout << "BackUp request msg was recieved from: " << m_subscriberIp << endl;
         cout << "from this is the user : " << user << endl;
 
-        string pathTarget = mqttConfigs::getLocalIp() + ":~/Desktop/";
+        string pathTarget =  ":~/Desktop/";
+        //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
 
         if (m_subscriberIp != mqttConfigs::getLocalIp())
         {
