@@ -68,9 +68,10 @@ namespace BupApp
             m_appClient->subscribe(m_subscribeToServerTopic, getQos())->wait();
             cout << "...OK" << endl;
 
-            cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
-            m_appClient->subscribe(m_privateChnl, getQos())->wait();
-            cout << "...OK" << endl;
+// TODO subscribe to public chnl- cancle. get lwr via vector of clients- serve should send all clients
+            // cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
+            // m_appClient->subscribe(m_privateChnl, getQos())->wait();
+            // cout << "...OK" << endl;
         }
         catch (const std::exception &e)
         {
