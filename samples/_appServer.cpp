@@ -230,7 +230,7 @@ namespace BupApp
     {
         client ref("");
         client found = searchForClient(ip);
-        return( found== ref ? false : true)
+        return( found== ref ? false : true);
     }
 
     // msgType BupApp::appServer::getTopicType(string topic)
