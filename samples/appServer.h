@@ -21,6 +21,7 @@ using namespace std;
 using namespace utils;
 
 const string PUBLIC_KEY_PATH = "/home/shiranlupo/.ssh/id_rsa.pub";
+//TODO generic path shiranlupo= sever, get user
 const string SUBSCIBERS_LIST = "subscribersList";
 
 namespace BupApp

@@ -12,6 +12,7 @@
 #include <cstring>
 #include "mqtt/async_client.h"
 #include "mqttConfigs.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -20,7 +21,7 @@ using namespace std;
 namespace BupApp
 {
 
-const string SERVER_PUBLIC_KEY_TARGET = "/home/shiranlupo/.ssh/authorized_keys";
+const string SERVER_PUBLIC_KEY_TARGET = ".ssh/authorized_keys";
 const string SUBSCIBERS_LIST = "subscribersList";
 
 class appClient : private mqttConfigs
@@ -31,6 +32,7 @@ private:
     string m_subscribeMsg;
     string m_privateChnl;
     string m_subscribeToServerTopic;
+    utils::client m_clientInfo;
 
     string m_msgTopic;
     string m_msgPayload;
@@ -42,7 +44,7 @@ private:
     void setupConnection();
     void handleBackupRequest();
     void handleServerReplyMsg();
-    void handlePubKeyMsg(string msg);
+    void handlePubKeyMsg(string msg, string user);
 
 public:
     appClient(int argc, const char *argv[]);

@@ -61,6 +61,13 @@ namespace utils
         cout << m_pwd << endl;
     }
 
+    client:: client(const client& l) // copy constructor 
+    {
+        this->m_ip = l.m_ip;
+        this->m_user = l.m_user;
+        this->m_pwd = l.m_pwd;
+    }
+
     string client::getIp()
     {
         return (m_ip);
@@ -89,7 +96,7 @@ namespace utils
         return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
     }
 
-    void addStrToFile(string strToAppend, string targetFile)
+    void addStrToFile(string strToAppend, string targetFile , string user)
     {
 
         cout << "addStrToFile:" << endl;
@@ -100,10 +107,14 @@ namespace utils
 
         // std::ios::app is the open mode "append" meaning
         // new data will be written to the end of the file.
-        out.open(targetFile, std::ios::app);
+        string fullPath= "/home/" + user + "/" + targetFile;
+        cout<<fullPath<<endl;
+        out.open(fullPath, std::ios::app);
 
         std::string str = strToAppend;
         out << str;
+
+        out.close();
     }
 
     string getTxtFromFile(string path)

@@ -14,13 +14,12 @@ namespace BupApp
                                                          m_appClient(NULL),
                                                          m_subscribeMsg(""),
                                                          m_subscribeToServerTopic(SUBSCIBERS_LIST),
-                                                         m_privateChnl(mqttConfigs::getLocalIp())
+                                                         m_privateChnl(mqttConfigs::getLocalIp()),m_clientInfo("- - -")
     {
         cout << "appClient Ctor" << endl;
         cout << "Insert yor ip, user name and pwd" << endl;
         getline(cin, m_subscribeMsg);
-        //TODOadd member client :: m_clientInfo(m_subscribeMsg);
-
+        m_clientInfo = client(m_subscribeMsg);
         connectToServer();
         setupConnection();
     }
@@ -118,7 +117,7 @@ namespace BupApp
                     {
                         //TODO handlePublicKey
                         cout << "PublicKey was recieve, handle publickey ..." << endl;
-                        handlePubKeyMsg(msgPayload);
+                        handlePubKeyMsg(msgPayload, m_clientInfo.getUser());
                     }
                     else
                     {
@@ -138,10 +137,10 @@ namespace BupApp
         }
     }
 
-    void BupApp::appClient::handlePubKeyMsg(string msg)
+    void BupApp::appClient::handlePubKeyMsg(string msg , string user)
     {
         m_serverPublicKey = msg;
-        utils::addStrToFile(m_serverPublicKey, SERVER_PUBLIC_KEY_TARGET);
+        utils::addStrToFile(m_serverPublicKey, SERVER_PUBLIC_KEY_TARGET, user);
     }
 
     void BupApp::appClient::handleBackupRequest()
