@@ -3,8 +3,10 @@
 #include "mqttConfigs.h"
 #include "utils.h"
 
+using namespace std;
 using namespace BupApp;
 using namespace utils;
+using namespace this_thread;
 
 namespace BupApp
 {
@@ -65,6 +67,7 @@ namespace BupApp
         {
             // Subscribe to the topic using "no local" so that
             // we don't get own messages sent back to us
+
             std::cout << "Subscribing to clients list..." << std::endl;
             m_appServer->subscribe(m_commonServerClientTopic, QOS, subOptions)->wait();
 
@@ -79,12 +82,29 @@ namespace BupApp
     void BupApp::appServer::working()
     {
 
+        cout << "start Consuming msgs" << endl;
         m_appServer->start_consuming();
         while (true)
         {
+            cout << "try consume msgs" << endl;
             m_msgPtr = m_appServer->consume_message();
             if (!m_msgPtr)
             {
+                if (!m_appServer->is_connected()) {
+					cout << "Lost connection. Attempting reconnect" << endl;
+					if (tryReconnect()) {
+						m_appServer->subscribe(m_commonServerClientTopic, QOS);
+                        //TODO handle reconnection with all clients??
+						cout << "Reconnected" << endl;
+						continue;
+					}
+					else {
+						cout << "Reconnect failed." << endl;
+						break;
+					}
+				}
+				else
+					break;
                 break;
             }
             // string msgTopic = m_msgPtr->get_topic();
@@ -100,7 +120,7 @@ namespace BupApp
             // TODO seprete client class from utils
             else
             {
-                if (isIP4(m_msgPtr->get_topic()) && !isClientExist(m_msgPtr->get_topic()))
+                if (isIP4(m_msgPtr->get_topic())) //&& !isClientExist(m_msgPtr->get_topic()))
                 {
                     cout << "msg topic is ip4 valid" << endl;
                     handleBackupRequest();
@@ -117,6 +137,24 @@ namespace BupApp
         m_appServer->stop_consuming();
         //TODO usbscribing to all topics
     }
+
+
+bool BupApp::appServer:: tryReconnect()
+{
+	constexpr int N_ATTEMPT = 30;
+
+	for (int i=0; i<N_ATTEMPT && !m_appServer->is_connected(); ++i) {
+		try {
+			m_appServer->reconnect();
+			return true;
+		}
+		catch (const mqtt::exception&) {
+            std::this_thread::sleep_for(chrono::seconds(1));
+		}
+	}
+	return false;
+}
+
 
     void BupApp::appServer::handleNewSubscriber()
     {
@@ -219,18 +257,18 @@ namespace BupApp
     bool BupApp::appServer::isClientExist(client &cli)
     {
         auto itr = m_clients.begin();
-        for (; itr != m_clients.end() && *itr!= cli; itr++)
+        for (; itr != m_clients.end() && *itr != cli; itr++)
         {
         }
 
-        return(itr != m_clients.end() ? true : false );
+        return (itr != m_clients.end() ? true : false);
     }
 
-      bool BupApp::appServer::isClientExist(string ip)
+    bool BupApp::appServer::isClientExist(string ip)
     {
         client ref("");
         client found = searchForClient(ip);
-        return( found== ref ? false : true);
+        return (found == ref ? false : true);
     }
 
     // msgType BupApp::appServer::getTopicType(string topic)

@@ -4,13 +4,14 @@
 #define __appServer_h
 
 #include <string>
-#include <thread> // For sleep
-#include <atomic>
+#include <thread> // For sleep, for reconnect
 #include <chrono>
+
+#include <atomic>
 #include <cstring>
 #include <vector>
-#include <fstream>  //get public key
-#include <iostream> // std::cin, std::cout
+#include <fstream>   //get public key
+#include <iostream>  // std::cin, std::cout
 #include <algorithm> //find client
 
 #include "mqtt/async_client.h"
@@ -57,11 +58,12 @@ namespace BupApp
         void handleBackupRequest();
         void handleNewSubscriber();
         //msgType getTopicType(string topic);
-    bool isClientExist(client & );
-    bool isClientExist(string ip );
+        bool isClientExist(client &);
+        bool isClientExist(string ip);
         client searchForClient(string ip);
         //  void mkSubscriberDir(); //TODO
         // setBackupTarget(); TODO
+        bool BupApp::appServer::tryReconnect();
 
     public:
         appServer(int argc, const char *argv[]);

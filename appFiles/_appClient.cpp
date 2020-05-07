@@ -63,15 +63,9 @@ namespace BupApp
             cout << "...OK" << endl;
             //TODO recieve ssh
 
-            cout << "\nSubscribtion to get server disconnecting msg..." << endl;
-            //clients should be subscribed to this topic only to get lwt, consider case in consume
-            m_appClient->subscribe(m_subscribeToServerTopic, getQos())->wait();
+             cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
+            m_appClient->subscribe(m_privateChnl, getQos())->wait();
             cout << "...OK" << endl;
-
-// TODO subscribe to public chnl- cancle. get lwr via vector of clients- serve should send all clients
-            // cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
-            // m_appClient->subscribe(m_privateChnl, getQos())->wait();
-            // cout << "...OK" << endl;
         }
         catch (const std::exception &e)
         {
