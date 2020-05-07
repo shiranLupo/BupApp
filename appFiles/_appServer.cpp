@@ -15,11 +15,9 @@ namespace BupApp
                                                          m_subscriberIp(""), m_pathToBackUp("")
 
     {
-        //CLog::Write(CLog::Debug, "appServer Ctor\n");
-        cout << "app server ctor" << endl;
-        // std::string m_publicKey = getPublicKey();
+        cout << "Starting app server..." << endl;
+
         getPublicKey(m_publicKey);
-        cout << "this is the public key to send 1:" << m_publicKey << endl;
         connectToServer();
         setupConnection();
         //TODO set dir for backup, deafualt is Desktop;
@@ -31,12 +29,11 @@ namespace BupApp
 
     void BupApp::appServer::connectToServer()
     {
-        //optional to change broker by cmnd line TODO change set server by config
-        cout << "Initializing contact with broker " << mqttConfigs::getBrokerAddress() << "..." << endl;
+        //TODO optional to change broker by cmnd line TODO change set server by config
+        cout << "Initializing: connecting to broker " << mqttConfigs::getBrokerAddress() << "...";
         m_appServer = std::make_shared<mqtt::async_client>(getBrokerAddress(), "");
 
-        // Set a callback for connection lost.
-        // This just exits the app.
+        // TODO Set a callback for connection lost.
         m_appServer->set_connection_lost_handler([](const std::string &) {
             std::cout << "*** Connection Lost  ***" << endl;
             exit(2);
@@ -56,22 +53,21 @@ namespace BupApp
 
     void BupApp::appServer::setupConnection()
     {
+        cout << "Setup communication channles with service clients ...";
         mqtt::subscribe_options subOptions(NO_LOCAL);
 
         try
         {
             // Subscribe to the topic using "no local" so that
             // we don't get own messages sent back to us
-
-            std::cout << "Subscribing to clients list..." << std::endl;
             m_appServer->subscribe(m_commonServerClientTopic, QOS, subOptions)->wait();
-
-            std::cout << "...OK" << endl;
         }
         catch (const std::exception &e)
         {
             std::cerr << e.what() << '\n';
         }
+            std::cout << "...OK" << endl;
+
     }
 
     void BupApp::appServer::working()
@@ -174,17 +170,17 @@ namespace BupApp
 
     void BupApp::appServer::getPublicKey(string &pubkey)
     {
-        cout << "getPubKey" << endl;
+        cout << "Extract Server public key....";
         pubkey = getTxtFromFile(PUBLIC_KEY_PATH);
-
-        cout << pubkey.size() << endl
-             << pubkey << endl;
 
         if (pubkey.size() != 415)
         {
-            cout << "can not get public key. Error: not correct key" << endl;
+            cout << "Can not get public key. Error: not correct key" << endl;
             pubkey = "";
         }
+        cout<<"OK"<<endl;
+        // cout << pubkey.size() << endl<< pubkey << endl;
+    
     }
 
     void BupApp::appServer::handleBackupRequest()
@@ -198,7 +194,7 @@ namespace BupApp
         cout << "BackUp request msg was recieved from: " << m_subscriberIp << endl;
         cout << "from this is the user : " << user << endl;
 
-        string pathTarget = ":~/Desktop/";
+        string pathTarget = "~/Desktop/";
         //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
 
         if (m_subscriberIp != mqttConfigs::getLocalIp())

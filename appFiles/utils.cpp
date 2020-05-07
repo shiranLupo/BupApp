@@ -90,8 +90,7 @@ namespace utils
     bool isIP4(string msgTopic)
     {
 
-        cout << "perfome ip4 check" << endl;
-        //int inet_pton(int af, const char *src, void *dst);
+        // cout << "Perfome ip4 check" << endl;
         unsigned long dst;
         return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
     }
@@ -99,7 +98,6 @@ namespace utils
     void addStrToFile(string strToAppend, string targetFile , string user)
     {
 
-        cout << "addStrToFile:" << endl;
         cout << targetFile << endl;
         cout << strToAppend << endl;
         auto start = std::chrono::system_clock::now();

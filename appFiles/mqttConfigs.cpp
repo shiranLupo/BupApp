@@ -34,6 +34,7 @@ BupApp::mqttConfigs::mqttConfigs(int argc, const char *argv[]) : m_qos(QOS),
         m_connectOpt->set_keep_alive_interval(20);
         m_connectOpt->set_mqtt_version(MQTTVERSION_5);
         m_connectOpt->set_clean_start(true);
+        // m_connectOpt->set_clean_session(true);
     }
 }
 

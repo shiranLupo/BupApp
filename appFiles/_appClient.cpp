@@ -18,7 +18,7 @@ namespace BupApp
     {
         cout << "appClient Ctor" << endl;
         cout << "Insert yor ip, user name and pwd" << endl;
-        getline(cin, m_subscribeMsg);
+        getline(cin, m_subscribeMsg); //TODO double ip input- remove one
         m_clientInfo = client(m_subscribeMsg);
         connectToServer();
         setupConnection();
@@ -53,7 +53,7 @@ namespace BupApp
     {
         try
         {
-
+             m_clientInfo.printClient();
             auto lwt = mqtt::make_message(m_clientInfo.getIp(), m_clientInfo.getIp() + " was disconnected>>>", QOS, RETAINED);
             mqttConfigs::getConnectionOpt()->set_will_message(lwt);
 
@@ -135,7 +135,7 @@ namespace BupApp
                 }
                 else if (msgTopic == m_subscribeToServerTopic)
                 {
-                    //TODO handlePubKeyMsg();
+                    //TODO handlePubKeyMsg(); //TODO add condition id this key already exist nno need to add
                     // add key to authorized list in .ssh dir
                 }
             }
