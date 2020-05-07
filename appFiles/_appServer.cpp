@@ -3,9 +3,7 @@
 #include "mqttConfigs.h"
 #include "utils.h"
 
-using namespace std;
 using namespace BupApp;
-using namespace utils;
 using namespace this_thread;
 
 namespace BupApp
@@ -109,8 +107,7 @@ namespace BupApp
 
                 break;
             }
-
-            if (m_msgPtr->get_topic() == m_commonServerClientTopic) //&& !isClientExist(m_msgPtr->get_topic()))
+            else if (m_msgPtr->get_topic() == m_commonServerClientTopic) //&& !isClientExist(m_msgPtr->get_topic()))
             {
                 //TODO if subscriber allredy exist do not operate handle
                 handleNewSubscriber(); //: add to vec, open topic and new Dir
@@ -135,24 +132,6 @@ namespace BupApp
         //TODO usbscribing to all topics
     }
 
-    bool BupApp::appServer::tryReconnect()
-    {
-        constexpr int N_ATTEMPT = 30;
-
-        for (int i = 0; i < N_ATTEMPT && !m_appServer->is_connected(); ++i)
-        {
-            try
-            {
-                m_appServer->reconnect();
-                return true;
-            }
-            catch (const mqtt::exception &)
-            {
-                std::this_thread::sleep_for(chrono::seconds(1));
-            }
-        }
-        return false;
-    }
 
     void BupApp::appServer::handleNewSubscriber()
     {
@@ -269,6 +248,26 @@ namespace BupApp
         client found = searchForClient(ip);
         return (found == ref ? false : true);
     }
+
+        bool BupApp::appServer::tryReconnect()
+    {
+        constexpr int N_ATTEMPT = 30;
+
+        for (int i = 0; i < N_ATTEMPT && !m_appServer->is_connected(); ++i)
+        {
+            try
+            {
+                m_appServer->reconnect();
+                return true;
+            }
+            catch (const mqtt::exception &)
+            {
+                std::this_thread::sleep_for(chrono::seconds(1));
+            }
+        }
+        return false;
+    }
+
 
     // msgType BupApp::appServer::getTopicType(string topic)
     // {

@@ -54,7 +54,7 @@ namespace BupApp
         try
         {
 
-            auto lwt = mqtt::make_message(m_clientInfo.getIp(), m_clientInfo.getIp() +" was disconnected>>>", QOS, RETAINED);
+            auto lwt = mqtt::make_message(m_clientInfo.getIp(), m_clientInfo.getIp() + " was disconnected>>>", QOS, RETAINED);
             mqttConfigs::getConnectionOpt()->set_will_message(lwt);
 
             //publish subscribe messeg TODO: wait until complite( server meanwhile will publish client new topic)
@@ -65,7 +65,7 @@ namespace BupApp
             //TODO recieve ssh
 
             m_appClient->start_consuming();
-            
+
             cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
             m_appClient->subscribe(m_privateChnl, getQos())->wait();
             cout << "...OK" << endl;
@@ -79,10 +79,21 @@ namespace BupApp
     void BupApp::appClient::working()
     {
 
-        //TODO let threads handle the msg
-        handleServerReplyMsg();
-        handleBackupRequest();
+       // TODO let threads handle the msg
+        // std::thread mqttThread(handleServerReplyMsg);
+        // handleServerReplyMsg();
+        // vector<thread>some_threads;
+        // for (int i = 0; i < 4; ++i)
+        //     some_threads.push_back(std::thread(&appClient::handleBackupRequest, this));
+        // for (auto &t : some_threads)
+        //     t.join();
 
+    //    std::thread(&appClient::handleBackupRequest);
+    //     std::thread(&appClient::handleServerReplyMsg);
+        std::thread t2(&appClient::handleBackupRequest, *this);
+        std::thread t1(&appClient::handleServerReplyMsg, this);
+        t1.join();
+        t2.join();
         m_appClient->stop_consuming();
     }
 
@@ -150,6 +161,7 @@ namespace BupApp
 
             //publish  messeg to privat topic that was created by server upon subscribe
             cout << "\nEnter path for backup..." << endl;
+            this_thread::sleep_for(chrono::seconds(1));
             string path;
             getline(std::cin, path);
 
