@@ -14,7 +14,7 @@ namespace BupApp
                                                          m_appClient(NULL),
                                                          m_subscribeMsg(""),
                                                          m_subscribeToServerTopic(SUBSCIBERS_LIST),
-                                                         m_privateChnl(mqttConfigs::getLocalIp()),m_clientInfo("- - -")
+                                                         m_privateChnl(mqttConfigs::getLocalIp()), m_clientInfo("- - -")
     {
         cout << "appClient Ctor" << endl;
         cout << "Insert yor ip, user name and pwd" << endl;
@@ -54,16 +54,19 @@ namespace BupApp
         try
         {
 
+            auto lwt = mqtt::make_message(m_clientInfo.getIp(), m_clientInfo.getIp() +" was disconnected>>>", QOS, RETAINED);
+            mqttConfigs::getConnectionOpt()->set_will_message(lwt);
+
             //publish subscribe messeg TODO: wait until complite( server meanwhile will publish client new topic)
             cout << "\nSending subscribtion msg to server..." << endl;
-            // example: https://stackoverflow.com/questions/49335001/get-local-ip-address-in-c
-        m_appClient->start_consuming();
 
             m_appClient->publish(m_subscribeToServerTopic, m_subscribeMsg, getQos(), getRetained())->wait();
             cout << "...OK" << endl;
             //TODO recieve ssh
 
-             cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
+            m_appClient->start_consuming();
+            
+            cout << "\nSubscribtion to backup chanle (send backup req, recieve backup location)..." << endl;
             m_appClient->subscribe(m_privateChnl, getQos())->wait();
             cout << "...OK" << endl;
         }
@@ -104,7 +107,7 @@ namespace BupApp
 
                 string msgTopic = msgPtr->get_topic();
                 string msgPayload = msgPtr->get_payload();
-                cout<<msgPayload<<endl;
+                cout << msgPayload << endl;
 
                 if (msgTopic == m_privateChnl)
                 {
@@ -132,7 +135,7 @@ namespace BupApp
         }
     }
 
-    void BupApp::appClient::handlePubKeyMsg(string msg , string user)
+    void BupApp::appClient::handlePubKeyMsg(string msg, string user)
     {
         m_serverPublicKey = msg;
         utils::addStrToFile(m_serverPublicKey, SERVER_PUBLIC_KEY_TARGET, user);

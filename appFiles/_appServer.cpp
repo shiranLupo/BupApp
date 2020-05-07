@@ -110,7 +110,7 @@ namespace BupApp
                 break;
             }
 
-            if (m_msgPtr->get_topic() == m_commonServerClientTopic)
+            if (m_msgPtr->get_topic() == m_commonServerClientTopic) //&& !isClientExist(m_msgPtr->get_topic()))
             {
                 //TODO if subscriber allredy exist do not operate handle
                 handleNewSubscriber(); //: add to vec, open topic and new Dir
@@ -119,7 +119,7 @@ namespace BupApp
             // TODO seprete client class from utils
             else
             {
-                if (isIP4(m_msgPtr->get_topic())) //&& !isClientExist(m_msgPtr->get_topic()))
+                if (isIP4(m_msgPtr->get_topic())) 
                 {
                     cout << "msg topic is ip4 valid" << endl;
                     handleBackupRequest();
@@ -168,7 +168,7 @@ namespace BupApp
             std::cout << "Subscribing to new client backup req channel..." << std::endl;
             mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);
 
-            auto lwt = mqtt::make_message(topicPerClient.to_string(), "Server was disconnected>>>", QOS, RETAINED);
+            auto lwt = mqtt::make_message(currClient.getIp(), "Server was disconnected>>>", QOS, RETAINED);
             mqttConfigs::getConnectionOpt()->set_will_message(lwt);
             
             topicPerClient.subscribe()->wait();

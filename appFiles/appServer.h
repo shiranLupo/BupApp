@@ -57,13 +57,12 @@ namespace BupApp
         void setupConnection();
         void handleBackupRequest();
         void handleNewSubscriber();
-        //msgType getTopicType(string topic);
         bool isClientExist(client &);
         bool isClientExist(string ip);
         client searchForClient(string ip);
         //  void mkSubscriberDir(); //TODO
         // setBackupTarget(); TODO
-        bool BupApp::appServer::tryReconnect();
+        bool tryReconnect();
 
     public:
         appServer(int argc, const char *argv[]);
