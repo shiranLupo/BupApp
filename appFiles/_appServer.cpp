@@ -33,9 +33,6 @@ namespace BupApp
 
     void BupApp::appServer::connectToServer()
     {
-
-        auto lwt = mqtt::make_message(m_commonServerClientTopic, "Server was disconnected>>>", QOS, RETAINED);
-        mqttConfigs::getConnectionOpt()->set_will_message(lwt);
         //optional to change broker by cmnd line TODO change set server by config
         cout << "Initializing contact with broker " << mqttConfigs::getBrokerAddress() << "..." << endl;
         m_appServer = std::make_shared<mqtt::async_client>(getBrokerAddress(), "");
@@ -90,26 +87,28 @@ namespace BupApp
             m_msgPtr = m_appServer->consume_message();
             if (!m_msgPtr)
             {
-                if (!m_appServer->is_connected()) {
-					cout << "Lost connection. Attempting reconnect" << endl;
-					if (tryReconnect()) {
-						m_appServer->subscribe(m_commonServerClientTopic, QOS);
-                        //TODO handle reconnection with all clients??
-						cout << "Reconnected" << endl;
-						continue;
-					}
-					else {
-						cout << "Reconnect failed." << endl;
-						break;
-					}
-				}
-				else
-					break;
+                //TODO check reconnect, seperate it to handle
+                // if (!m_appServer->is_connected())
+                // {
+                //     cout << "Lost connection. Attempting reconnect" << endl;
+                //     if (tryReconnect())
+                //     {
+                //         m_appServer->subscribe(m_commonServerClientTopic, QOS);
+                //         //TODO handle reconnection with all clients??
+                //         cout << "Reconnected" << endl;
+                //         continue;
+                //     }
+                //     else
+                //     {
+                //         cout << "Reconnect failed." << endl;
+                //         break;
+                //     }
+                // }
+                // else
+                //     break;
+
                 break;
             }
-            // string msgTopic = m_msgPtr->get_topic();
-            // string msgPayload = m_msgPtr->get_payload();
-            // cout << "OK... msg recieved (topic): " << msgPayload << " (" << ":~/Desktop/"msgTopic << ")" << endl;
 
             if (m_msgPtr->get_topic() == m_commonServerClientTopic)
             {
@@ -129,8 +128,6 @@ namespace BupApp
 
                 //TODO handle disconnect , do not remove from vector
                 //TODO handle usbscribe , remove from vector
-
-                // }
             }
         }
 
@@ -138,23 +135,24 @@ namespace BupApp
         //TODO usbscribing to all topics
     }
 
+    bool BupApp::appServer::tryReconnect()
+    {
+        constexpr int N_ATTEMPT = 30;
 
-bool BupApp::appServer:: tryReconnect()
-{
-	constexpr int N_ATTEMPT = 30;
-
-	for (int i=0; i<N_ATTEMPT && !m_appServer->is_connected(); ++i) {
-		try {
-			m_appServer->reconnect();
-			return true;
-		}
-		catch (const mqtt::exception&) {
-            std::this_thread::sleep_for(chrono::seconds(1));
-		}
-	}
-	return false;
-}
-
+        for (int i = 0; i < N_ATTEMPT && !m_appServer->is_connected(); ++i)
+        {
+            try
+            {
+                m_appServer->reconnect();
+                return true;
+            }
+            catch (const mqtt::exception &)
+            {
+                std::this_thread::sleep_for(chrono::seconds(1));
+            }
+        }
+        return false;
+    }
 
     void BupApp::appServer::handleNewSubscriber()
     {
@@ -162,16 +160,17 @@ bool BupApp::appServer:: tryReconnect()
         string msgPayload = m_msgPtr->get_payload();
         try
         {
-            //handle subscription
-            //m_currClient(m_msgPayload); // TODO appropreite operator
             utils::client currClient(msgPayload);
             currClient.printClient();
 
             cout << "Subscribtion request msg was recieved from: " << currClient.getIp() << endl;
-            //TODO publish in online==true msg, lwr will change it to false . and subscribe to this topic
 
             std::cout << "Subscribing to new client backup req channel..." << std::endl;
             mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);
+
+            auto lwt = mqtt::make_message(topicPerClient.to_string(), "Server was disconnected>>>", QOS, RETAINED);
+            mqttConfigs::getConnectionOpt()->set_will_message(lwt);
+            
             topicPerClient.subscribe()->wait();
             std::cout << "...OK" << endl;
 
