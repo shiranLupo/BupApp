@@ -20,6 +20,7 @@ namespace BupApp
         getPublicKey(m_publicKey);
         connectToServer();
         setupConnection();
+        cout<<" Server initialization succeed...."<<endl<<endl<<endl;
         //TODO set dir for backup, deafualt is Desktop;
     }
 
@@ -66,18 +67,17 @@ namespace BupApp
         {
             std::cerr << e.what() << '\n';
         }
-            std::cout << "...OK" << endl;
-
+        std::cout << "...OK" << endl;
     }
 
     void BupApp::appServer::working()
     {
 
-        cout << "start Consuming msgs" << endl;
+        cout << "Server starts consuming msgs: initialize.... " << endl;
         m_appServer->start_consuming();
         while (true)
         {
-            cout << "try consume msgs" << endl;
+            cout << "Try consume msg..." << endl<<endl<<endl;
             m_msgPtr = m_appServer->consume_message();
             if (!m_msgPtr)
             {
@@ -100,25 +100,24 @@ namespace BupApp
                 // }
                 // else
                 //     break;
-
                 break;
             }
             else if (m_msgPtr->get_topic() == m_commonServerClientTopic) //&& !isClientExist(m_msgPtr->get_topic()))
             {
+
                 //TODO if subscriber allredy exist do not operate handle
-                handleNewSubscriber(); //: add to vec, open topic and new Dir
+                handleNewSubscriber();
             }
             // TODO msg class
             // TODO seprete client class from utils
             else
             {
-                if (isIP4(m_msgPtr->get_topic())) 
+                if (isIP4(m_msgPtr->get_topic()))
                 {
                     cout << "msg topic is ip4 valid" << endl;
                     handleBackupRequest();
                     // TODO handleReplyBackupRequest();
                 }
-
                 //TODO handle disconnect , do not remove from vector
                 //TODO handle usbscribe , remove from vector
             }
@@ -128,30 +127,27 @@ namespace BupApp
         //TODO usbscribing to all topics
     }
 
-
     void BupApp::appServer::handleNewSubscriber()
     {
+        cout << "Server handles new subscriber request ....";
+        //: add to vec, open topic and new Dir
         string msgTopic = m_msgPtr->get_topic();
         string msgPayload = m_msgPtr->get_payload();
         try
         {
             utils::client currClient(msgPayload);
-            currClient.printClient();
+            cout << "from: " << currClient.getIp() << " " << currClient.getUser() << endl;
 
-            cout << "Subscribtion request msg was recieved from: " << currClient.getIp() << endl;
-
-            std::cout << "Subscribing to new client backup req channel..." << std::endl;
-            mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);
-
+            //preparing lwt msg
             auto lwt = mqtt::make_message(currClient.getIp(), "Server was disconnected>>>", QOS, RETAINED);
             mqttConfigs::getConnectionOpt()->set_will_message(lwt);
-            
+
+            std::cout << "Server subscribig to new client backup req channel...";
+            mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);
             topicPerClient.subscribe()->wait();
             std::cout << "...OK" << endl;
 
-            std::cout << "Sending new subscriber public key via private chnl..." << std::endl;
-            cout << "this is the public key to send 2:" << m_publicKey << endl;
-
+            std::cout << "Sending new subscriber public key via private chnl...";
             topicPerClient.publish(m_publicKey.c_str(), m_publicKey.size(), QOS, RETAINED)->wait();
             std::cout << "...OK" << endl;
 
@@ -164,6 +160,9 @@ namespace BupApp
         {
             std::cerr << e.what() << '\n';
         }
+
+        cout << "Server handled new subscriber request succed...."<<endl<<endl<<endl;
+
     }
 
     //TODO in init server only once
@@ -178,9 +177,8 @@ namespace BupApp
             cout << "Can not get public key. Error: not correct key" << endl;
             pubkey = "";
         }
-        cout<<"OK"<<endl;
+        cout << "OK" << endl;
         // cout << pubkey.size() << endl<< pubkey << endl;
-    
     }
 
     void BupApp::appServer::handleBackupRequest()
@@ -191,7 +189,7 @@ namespace BupApp
         //TODO should find the client in the vector
         string user = searchForClient(m_subscriberIp).getUser();
 
-        cout << "BackUp request msg was recieved from: " << m_subscriberIp << endl;
+        cout << "Server handles backUp request. msg was recieved from: " << m_subscriberIp << endl;
         cout << "from this is the user : " << user << endl;
 
         string pathTarget = "~/Desktop/";
@@ -212,6 +210,9 @@ namespace BupApp
             cout << "This is local backup: no need to use scp" << endl;
             //TODO hanlde local backup
         }
+
+        cout << "Server handled backup request succed...."<<endl<<endl<<endl;
+
     }
 
     client BupApp::appServer::searchForClient(string ip)
@@ -245,7 +246,7 @@ namespace BupApp
         return (found == ref ? false : true);
     }
 
-        bool BupApp::appServer::tryReconnect()
+    bool BupApp::appServer::tryReconnect()
     {
         constexpr int N_ATTEMPT = 30;
 
@@ -263,7 +264,6 @@ namespace BupApp
         }
         return false;
     }
-
 
     // msgType BupApp::appServer::getTopicType(string topic)
     // {

@@ -41,9 +41,11 @@ namespace utils
         bool operator!=(client lft);
     };
 
-    //append string to file, return true for success
+    string getFullFilePath(string targetFile, string user);
     void addStrToFile(string strToAppend, string targetFile, string user);
     string getTxtFromFile(string path);
+    bool isTxtExist(string txt, string filePath);
+
     class CLog
     {
     public:
