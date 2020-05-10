@@ -61,7 +61,7 @@ namespace utils
         cout << m_pwd << endl;
     }
 
-    client:: client(const client& l) // copy constructor 
+    client::client(const client &l) // copy constructor
     {
         this->m_ip = l.m_ip;
         this->m_user = l.m_user;
@@ -95,19 +95,21 @@ namespace utils
         return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
     }
 
-    void addStrToFile(string strToAppend, string targetFile , string user)
+    string getFullFilePath(string targetFile, string user)
     {
+        cout << "getFullFilePath : "
+             << "/home/" << user + "/" << targetFile << endl;
+        return ("/home/" + user + "/" + targetFile);
+    }
 
-        cout << targetFile << endl;
-        cout << strToAppend << endl;
+    void addStrToFile(string strToAppend, string targetFile, string user)
+    {
         auto start = std::chrono::system_clock::now();
         std::ofstream out;
 
         // std::ios::app is the open mode "append" meaning
         // new data will be written to the end of the file.
-        string fullPath= "/home/" + user + "/" + targetFile;
-        cout<<fullPath<<endl;
-        out.open(fullPath, std::ios::app);
+        out.open(getFullFilePath(targetFile, user), std::ios::app);
 
         std::string str = strToAppend;
         out << str;
@@ -120,7 +122,7 @@ namespace utils
         fstream in_file(path);
         if (!in_file)
         {
-            cout << "can getTxtFromFile: in opening file" << endl;
+            cout << "Error getTxtFromFile: can not open file" << endl;
             return ("");
         }
 
@@ -131,6 +133,18 @@ namespace utils
             ret += c;
         }
         return (ret);
+    }
+
+    bool isTxtExist(string txt, string filePath)
+    {
+        fstream in_file(filePath);
+        if (!in_file)
+        {
+            cout << "Error isTxtExist: can not open file" << endl;
+            return ("");
+        }
+        string existFile = getTxtFromFile(filePath);
+        return (existFile.find(txt) == string::npos ? false : true);
     }
 
 } //end namespace utils
