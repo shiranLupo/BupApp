@@ -30,6 +30,7 @@ private:
     int m_qos;
     bool m_retained;
     mqtt::connect_options_ptr m_connectOpt;
+    
 
 public:
     mqttConfigs(int argc, const char *argv[]);

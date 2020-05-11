@@ -59,8 +59,12 @@ namespace BupApp
     {
         try
         {
+            cout<< "Setting lwt ...";
             auto lwt = mqtt::make_message(m_clientInfo.getIp(), m_clientInfo.getIp() + " was disconnected>>>", QOS, RETAINED);
-            mqttConfigs::getConnectionOpt()->set_will_message(lwt);
+            mqttConfigs::getConnectionOpt()->
+            set_will_message(lwt);
+            cout<< "OK"<<endl;
+
 
             //publish subscribe messeg TODO: wait until complite( server meanwhile will publish client new topic)
             cout << "Sending subscribtion msg to public server channle...";
@@ -123,7 +127,6 @@ namespace BupApp
 
                 string msgTopic = msgPtr->get_topic();
                 string msgPayload = msgPtr->get_payload();
-                cout << msgPayload << endl;
 
                 if (msgTopic == m_privateChnl)
                 {
@@ -139,8 +142,6 @@ namespace BupApp
                 }
                 else if (msgTopic == m_subscribeToServerTopic)
                 {
-                    //TODO handlePubKeyMsg(); //TODO add condition id this key already exist nno need to add
-                    // add key to authorized list in .ssh dir
                 }
             }
             catch (const std::exception &e)

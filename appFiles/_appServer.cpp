@@ -139,8 +139,11 @@ namespace BupApp
             cout << "from: " << currClient.getIp() << " " << currClient.getUser() << endl;
 
             //preparing lwt msg
-            auto lwt = mqtt::make_message(currClient.getIp(), "Server was disconnected>>>", QOS, RETAINED);
-            mqttConfigs::getConnectionOpt()->set_will_message(lwt);
+            cout<< "Setting lwt ...";
+            auto lwt = mqtt::message(currClient.getIp(), "Server was disconnected>>>", QOS, RETAINED);
+            mqtt::will_options will(lwt);
+            mqttConfigs::getConnectionOpt()->set_will(will);
+            cout<< "OK "<<endl;
 
             std::cout << "Server subscribig to new client backup req channel...";
             mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);

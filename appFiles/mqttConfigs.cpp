@@ -26,8 +26,7 @@ BupApp::mqttConfigs::mqttConfigs(int argc, const char *argv[]) : m_qos(QOS),
     m_brokerAdress = argv[2];
     mqtt::subscribe_options subOptions(NO_LOCAL);
 
-    if (m_brokerAdress == m_localIp)
-    {
+   
         // Set up the connect options
         m_connectOpt = std::make_shared<mqtt::connect_options>();
 
@@ -35,13 +34,11 @@ BupApp::mqttConfigs::mqttConfigs(int argc, const char *argv[]) : m_qos(QOS),
         m_connectOpt->set_mqtt_version(MQTTVERSION_5);
         m_connectOpt->set_clean_start(true);
         // m_connectOpt->set_clean_session(true);
-    }
+    
 }
 
 BupApp::mqttConfigs::~mqttConfigs()
-{
-    cout << "mqttConfigs Dtor" << endl;
-}
+{}
 
 std::string BupApp::mqttConfigs::getLocalIp()
 {
