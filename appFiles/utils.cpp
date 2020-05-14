@@ -95,6 +95,7 @@ namespace utils
         return (inet_pton(AF_INET, msgTopic.c_str(), &dst) == 1 ? true : false);
     }
 
+    //NOTICE: per OS (ubunto and resberrian)
     string getFullFilePath(string targetFile, string user)
     {
         cout << "getFullFilePath : "
