@@ -16,47 +16,49 @@
 
 using namespace std;
 
-
-
 namespace BupApp
 {
 
-const string SERVER_PUBLIC_KEY_TARGET = ".ssh/authorized_keys";
-const string SUBSCIBERS_LIST = "subscribersList";
+    const string SERVER_PUBLIC_KEY_TARGET = ".ssh/authorized_keys";
+    const string SUBSCIBERS_LIST = "subscribersList";
 
-class appClient : private mqttConfigs
-{
-private:
-    /* data */
-    mqtt::async_client_ptr m_appClient;
-    string m_subscribeMsg;
-    string m_privateChnl;
-    string m_subscribeToServerTopic;
-    utils::client m_clientInfo;
+    class appClient : private mqttConfigs
+    {
+    private:
+        /* data */
+        mqtt::async_client_ptr m_appClient;
+        string m_subscribeMsg;
+        string m_privateChnl;
+        string m_publicChnl;
+        utils::client m_clientInfo;
 
-    string m_msgTopic;
-    string m_msgPayload;
-    string m_serverPublicKey;
-    // string m_newSubscriberIp;
-    // string m_pathToBackUp;
+        string m_msgTopic;
+        string m_msgPayload;
+        string m_serverPublicKey;
 
-    void connectToServer();
-    void setupConnection();
-    void handleBackupRequest();
-    void handleServerReplyMsg();
-    void handlePubKeyMsg(string msg, string user);
+        std::thread m_cmdThread;
+        std::thread m_commThread;
 
-public:
-    appClient(int argc, const char *argv[]);
-    ~appClient();
+        bool isMsgTypeOf(string type, string &msg);
 
-    void init();
-    void working();
-    void disconnect();
+        void setClientInfo();
+        void connectToServer();
+        void setupConnection();
+        void handleBackupRequest();
+        void handleServerReplyMsg();
+        void handlePubKeyMsg(string msg, string user);
 
-    string getBackupRequestPath();
-    string getBackupRepleyPath();
-};
+    public:
+        appClient(int argc, const char *argv[]);
+        ~appClient();
+
+        void init();
+        void working();
+        void disconnect();
+
+        // string getBackupRequestPath();
+        // string getBackupRepleyPath();
+    };
 
 } //end of namespace BupApp
 

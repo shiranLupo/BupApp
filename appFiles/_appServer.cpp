@@ -232,6 +232,7 @@ namespace BupApp
 
         return (client(""));
     }
+   
     bool BupApp::appServer::isClientExist(client &cli)
     {
         auto itr = m_clients.begin();

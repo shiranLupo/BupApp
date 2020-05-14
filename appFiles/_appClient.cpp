@@ -13,26 +13,39 @@ namespace BupApp
     appClient::appClient(int argc, const char *argv[]) : mqttConfigs(argc, argv),
                                                          m_appClient(NULL),
                                                          m_subscribeMsg(""),
-                                                         m_subscribeToServerTopic(SUBSCIBERS_LIST),
+                                                         m_publicChnl(SUBSCIBERS_LIST),
                                                          m_privateChnl(mqttConfigs::getLocalIp()), m_clientInfo("- - -")
+    {
+    }
+
+    void BupApp::appClient::init()
     {
         cout << "Starting app local BupApp client..." << endl;
 
-        cout << "Insert yor ip, user name and pwd" << endl;
-        getline(cin, m_subscribeMsg); //TODO double ip input- remove one
-        cout << endl
-             << endl;
-        m_clientInfo = client(m_subscribeMsg);
+        setClientInfo();
         connectToServer();
         setupConnection();
 
         cout << "Client initialization succeed ..." << endl
-             << endl
              << endl;
+    }
+
+    void appClient::setClientInfo()
+    {
+        cout << "Insert user name and pwd" << endl;
+        string clientInfo;
+        getline(cin, clientInfo); //TODO double ip input- remove one
+        cout << endl
+             << endl;
+        m_subscribeMsg = mqttConfigs::getLocalIp() + " " + clientInfo;
+        m_clientInfo = client(m_subscribeMsg);
     }
 
     appClient::~appClient()
     {
+        m_cmdThread.join();
+        m_commThread.join();
+        m_appClient->stop_consuming();
     }
 
     void BupApp::appClient::connectToServer()
@@ -59,17 +72,15 @@ namespace BupApp
     {
         try
         {
-            cout<< "Setting lwt ...";
+            cout << "Setting lwt ...";
             auto lwt = mqtt::make_message(m_clientInfo.getIp(), m_clientInfo.getIp() + " was disconnected>>>", QOS, RETAINED);
-            mqttConfigs::getConnectionOpt()->
-            set_will_message(lwt);
-            cout<< "OK"<<endl;
-
+            mqttConfigs::getConnectionOpt()->set_will_message(lwt);
+            cout << "OK" << endl;
 
             //publish subscribe messeg TODO: wait until complite( server meanwhile will publish client new topic)
             cout << "Sending subscribtion msg to public server channle...";
 
-            m_appClient->publish(m_subscribeToServerTopic, m_subscribeMsg, getQos(), getRetained())->wait();
+            m_appClient->publish(m_publicChnl, m_subscribeMsg, getQos(), getRetained())->wait();
             cout << "...OK" << endl;
 
             m_appClient->start_consuming();
@@ -88,21 +99,9 @@ namespace BupApp
     {
 
         // TODO let threads handle the msg
-        // std::thread mqttThread(handleServerReplyMsg);
-        // handleServerReplyMsg();
-        // vector<thread>some_threads;
-        // for (int i = 0; i < 4; ++i)
-        //     some_threads.push_back(std::thread(&appClient::handleBackupRequest, this));
-        // for (auto &t : some_threads)
-        //     t.join();
 
-        //    std::thread(&appClient::handleBackupRequest);
-        //     std::thread(&appClient::handleServerReplyMsg);
-        std::thread t2(&appClient::handleBackupRequest, *this);
-        std::thread t1(&appClient::handleServerReplyMsg, this);
-        t1.join();
-        t2.join();
-        m_appClient->stop_consuming();
+        m_cmdThread = thread{&appClient::handleBackupRequest, this};
+        m_commThread = thread{&appClient::handleServerReplyMsg, this};
     }
 
     void ::BupApp::appClient::disconnect()
@@ -110,14 +109,17 @@ namespace BupApp
         cout << "dissconnect" << endl;
     }
 
+    bool BupApp::appClient::isMsgTypeOf(string type, string &msg)
+    {
+        return (msg.find(type) != string::npos ? true : false);
+    }
+
     void BupApp::appClient::handleServerReplyMsg()
     {
         while (true)
         {
             try
-            { // mqtt::const_message_ptr mp;
-                //   cout << "try consume_message" << endl;
-                //TODO recieve ssh
+            { 
                 cout << "Try consume massage..." << endl;
                 auto msgPtr = m_appClient->consume_message();
                 if (!msgPtr)
@@ -130,18 +132,28 @@ namespace BupApp
 
                 if (msgTopic == m_privateChnl)
                 {
-                    if (msgPayload.find("ssh-rsa") != string::npos)
+                    //TODO isTypeOf(string type, msg) //is this ssh?
+                    if (isMsgTypeOf("ssh-rsa", msgPayload))
                     {
                         //TODO handlePublicKey
                         handlePubKeyMsg(msgPayload, m_clientInfo.getUser());
                     }
-                    else
+                    else if (isMsgTypeOf("failed", msgPayload))
                     {
-                        cout << "Backup succeed! data is here : " << msgPayload << endl;
+                        //TODO isTypeOf(string type, msg) //is this success?
+
+                        cout << "Backup failed! error info: " << msgPayload<< endl;
+                    }
+                    else if (isMsgTypeOf("succeed", msgPayload))
+                    {
+                        //TODO isTypeOf(string type, msg) //is this success?
+
+                        cout << "Backup succeed! " << endl;
                     }
                 }
-                else if (msgTopic == m_subscribeToServerTopic)
+                else
                 {
+                    cout << "msg is not handled . msg:" << msgTopic << msgPayload << endl;
                 }
             }
             catch (const std::exception &e)
@@ -156,7 +168,7 @@ namespace BupApp
         cout << "PublicKey was recieve, handle publickey ...";
         m_serverPublicKey = msg;
 
-        if (!utils::isTxtExist(msg, getFullFilePath( SERVER_PUBLIC_KEY_TARGET , user)))
+        if (!utils::isTxtExist(msg, getFullFilePath(SERVER_PUBLIC_KEY_TARGET, user)))
         {
             utils::addStrToFile(m_serverPublicKey, SERVER_PUBLIC_KEY_TARGET, user);
         }
