@@ -11,16 +11,22 @@ namespace BupApp
 
     appServer::appServer(int argc, const char *argv[]) : mqttConfigs(argc, argv),
                                                          m_appServer(NULL), m_msgPtr(NULL),
-                                                         m_commonServerClientTopic(SUBSCIBERS_LIST), m_currClient("- - -"),
+                                                         m_publicChnl(SUBSCIBERS_LIST), m_currClient("- - -"),
                                                          m_subscriberIp(""), m_pathToBackUp("")
 
+    {
+    }
+
+    void BupApp::appServer::init()
     {
         cout << "Starting app server..." << endl;
 
         getPublicKey(m_publicKey);
         connectToServer();
         setupConnection();
-        cout<<" Server initialization succeed...."<<endl<<endl<<endl;
+        cout << " Server initialization succeed...." << endl
+             << endl
+             << endl;
         //TODO set dir for backup, deafualt is Desktop;
     }
 
@@ -61,7 +67,7 @@ namespace BupApp
         {
             // Subscribe to the topic using "no local" so that
             // we don't get own messages sent back to us
-            m_appServer->subscribe(m_commonServerClientTopic, QOS, subOptions)->wait();
+            m_appServer->subscribe(m_publicChnl, QOS, subOptions)->wait();
         }
         catch (const std::exception &e)
         {
@@ -77,7 +83,9 @@ namespace BupApp
         m_appServer->start_consuming();
         while (true)
         {
-            cout << "Try consume msg..." << endl<<endl<<endl;
+            cout << "Try consume msg..." << endl
+                 << endl
+                 << endl;
             m_msgPtr = m_appServer->consume_message();
             if (!m_msgPtr)
             {
@@ -87,7 +95,7 @@ namespace BupApp
                 //     cout << "Lost connection. Attempting reconnect" << endl;
                 //     if (tryReconnect())
                 //     {
-                //         m_appServer->subscribe(m_commonServerClientTopic, QOS);
+                //         m_appServer->subscribe(m_publicChnl, QOS);
                 //         //TODO handle reconnection with all clients??
                 //         cout << "Reconnected" << endl;
                 //         continue;
@@ -102,9 +110,8 @@ namespace BupApp
                 //     break;
                 break;
             }
-            else if (m_msgPtr->get_topic() == m_commonServerClientTopic) //&& !isClientExist(m_msgPtr->get_topic()))
+            else if (m_msgPtr->get_topic() == m_publicChnl) //&& !isClientExist(m_msgPtr->get_topic()))
             {
-
                 //TODO if subscriber allredy exist do not operate handle
                 handleNewSubscriber();
             }
@@ -139,11 +146,11 @@ namespace BupApp
             cout << "from: " << currClient.getIp() << " " << currClient.getUser() << endl;
 
             //preparing lwt msg
-            cout<< "Setting lwt ...";
+            cout << "Setting lwt ...";
             auto lwt = mqtt::message(currClient.getIp(), "Server was disconnected>>>", QOS, RETAINED);
             mqtt::will_options will(lwt);
             mqttConfigs::getConnectionOpt()->set_will(will);
-            cout<< "OK "<<endl;
+            cout << "OK " << endl;
 
             std::cout << "Server subscribig to new client backup req channel...";
             mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);
@@ -164,8 +171,9 @@ namespace BupApp
             std::cerr << e.what() << '\n';
         }
 
-        cout << "Server handled new subscriber request succed...."<<endl<<endl<<endl;
-
+        cout << "Server handled new subscriber request succed...." << endl
+             << endl
+             << endl;
     }
 
     //TODO in init server only once
@@ -175,7 +183,7 @@ namespace BupApp
         cout << "Extract Server public key....";
         pubkey = getTxtFromFile(PUBLIC_KEY_PATH);
 
-        if (pubkey.size() != 415)
+        if (pubkey.size() != PUBLIC_KEY_SIZE)
         {
             cout << "Can not get public key. Error: not correct key" << endl;
             pubkey = "";
@@ -193,7 +201,7 @@ namespace BupApp
         string user = searchForClient(m_subscriberIp).getUser();
 
         cout << "Server handles backUp request. msg was recieved from: " << m_subscriberIp << endl;
-        cout << "from this is the user : " << user << endl;
+        cout << "from this user : " << user << endl;
 
         string pathTarget = "~/Desktop/";
         //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
@@ -214,8 +222,9 @@ namespace BupApp
             //TODO hanlde local backup
         }
 
-        cout << "Server handled backup request succed...."<<endl<<endl<<endl;
-
+        cout << "Server handled backup request succed...." << endl
+             << endl
+             << endl;
     }
 
     client BupApp::appServer::searchForClient(string ip)
@@ -232,7 +241,7 @@ namespace BupApp
 
         return (client(""));
     }
-   
+
     bool BupApp::appServer::isClientExist(client &cli)
     {
         auto itr = m_clients.begin();
@@ -271,7 +280,7 @@ namespace BupApp
 
     // msgType BupApp::appServer::getTopicType(string topic)
     // {
-    //     if (topic == m_commonServerClientTopic)
+    //     if (topic == m_publicChnl)
     //         return (NEW_CLIENT);
     //     else if (isIP4(topic))
     //         return (BACKUP);

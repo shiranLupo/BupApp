@@ -24,6 +24,7 @@ using namespace utils;
 const string PUBLIC_KEY_PATH = "/home/shiranlupo/.ssh/id_rsa.pub";
 //TODO generic path shiranlupo= sever, get user
 const string SUBSCIBERS_LIST = "subscribersList";
+const int PUBLIC_KEY_SIZE = 415;
 
 namespace BupApp
 {
@@ -48,7 +49,7 @@ namespace BupApp
         vector<utils::client> m_clients;
         utils::client m_currClient;
 
-        string m_commonServerClientTopic;
+        string m_publicChnl;
         mqtt::const_message_ptr m_msgPtr;
         string m_subscriberIp;
         string m_pathToBackUp;
@@ -60,6 +61,7 @@ namespace BupApp
         bool isClientExist(client &);
         bool isClientExist(string ip);
         client searchForClient(string ip);
+        void checkReconnect();
         //  void mkSubscriberDir(); //TODO
         // setBackupTarget(); TODO
         bool tryReconnect();
@@ -69,7 +71,7 @@ namespace BupApp
         ~appServer();
         void getPublicKey(string &pubkey);
 
-        // // void init();
+        void init();
         void working();
         //  void disconnect();
     };
