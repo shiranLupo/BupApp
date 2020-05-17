@@ -11,8 +11,7 @@ namespace BupApp
 
     appServer::appServer(int argc, const char *argv[]) : mqttConfigs(argc, argv),
                                                          m_appServer(NULL), m_msgPtr(NULL),
-                                                         m_publicChnl(SUBSCIBERS_LIST)  
-
+                                                         m_publicChnl(SUBSCIBERS_LIST)
     {
     }
 
@@ -22,7 +21,7 @@ namespace BupApp
 
         getPublicKey(m_publicKey);
         connectToServer();
-        setupConnection();
+        serverSetups();
         cout << "Server initialization succeed...." << endl
              << endl
              << endl;
@@ -198,29 +197,31 @@ namespace BupApp
         string subscriberIp = m_msgPtr->get_topic();
         string backUpPath = m_msgPtr->get_payload();
         //TODO should find the client in the vector
-        string user = searchForClient(subscriberIp).getUser();
+        client currClient = searchForClient(subscriberIp);
+        string user = currClient.getUser();
 
         cout << "Server handles backUp request. msg was recieved from: " << subscriberIp << endl;
         cout << "from this user : " << user << endl;
 
-        string pathTarget = "~/Desktop/";
+        string pathTarget = "~/Desktop/" + currClient.getPath();
         //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
 
+        string cmnd;
         if (subscriberIp != mqttConfigs::getLocalIp())
         {
 
             //TODO make back up dir per cleint
             //string pathTarget = "~/Desktop/" + subscriberIp;
-
-            string cmnd = "scp -r " + user + "@" + subscriberIp + ":" + backUpPath + " " + pathTarget;
+            cmnd = "scp -r " + user + "@" + subscriberIp + ":" + backUpPath + " " + pathTarget;
             cout << "cmnd for sys is: " << cmnd << endl;
-            system(cmnd.c_str());
         }
         else
         {
             cout << "This is local backup: no need to use scp" << endl;
-            //TODO hanlde local backup
+            cmnd = "cp -r " + backUpPath + " " + pathTarget;
         }
+
+        system(cmnd.c_str());
 
         cout << "Server handled backup request succed...." << endl
              << endl
