@@ -8,7 +8,7 @@ int main(int argc, char const *argv[])
 {
     cout << "main" << endl;
     BupApp::appServer server(argc, argv);
-
+    server.init();
     //std::cout << server.getPublicKey() << std::endl;
     server.working();
     return 0;

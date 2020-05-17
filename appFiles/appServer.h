@@ -47,12 +47,9 @@ namespace BupApp
         string m_publicKey;
         mqtt::async_client_ptr m_appServer;
         vector<utils::client> m_clients;
-        utils::client m_currClient;
 
         string m_publicChnl;
         mqtt::const_message_ptr m_msgPtr;
-        string m_subscriberIp;
-        string m_pathToBackUp;
         vector<thread> m_threadPool;
 
         void connectToServer();

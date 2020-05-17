@@ -11,8 +11,7 @@ namespace BupApp
 
     appServer::appServer(int argc, const char *argv[]) : mqttConfigs(argc, argv),
                                                          m_appServer(NULL), m_msgPtr(NULL),
-                                                         m_publicChnl(SUBSCIBERS_LIST), m_currClient("- - -"),
-                                                         m_subscriberIp(""), m_pathToBackUp("")
+                                                         m_publicChnl(SUBSCIBERS_LIST)  
 
     {
     }
@@ -24,7 +23,7 @@ namespace BupApp
         getPublicKey(m_publicKey);
         connectToServer();
         setupConnection();
-        cout << " Server initialization succeed...." << endl
+        cout << "Server initialization succeed...." << endl
              << endl
              << endl;
         //TODO set dir for backup, deafualt is Desktop;
@@ -196,24 +195,24 @@ namespace BupApp
     void BupApp::appServer::handleBackupRequest()
     {
 
-        string m_subscriberIp = m_msgPtr->get_topic();
-        string m_pathToBackUp = m_msgPtr->get_payload();
+        string subscriberIp = m_msgPtr->get_topic();
+        string backUpPath = m_msgPtr->get_payload();
         //TODO should find the client in the vector
-        string user = searchForClient(m_subscriberIp).getUser();
+        string user = searchForClient(subscriberIp).getUser();
 
-        cout << "Server handles backUp request. msg was recieved from: " << m_subscriberIp << endl;
+        cout << "Server handles backUp request. msg was recieved from: " << subscriberIp << endl;
         cout << "from this user : " << user << endl;
 
         string pathTarget = "~/Desktop/";
         //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
 
-        if (m_subscriberIp != mqttConfigs::getLocalIp())
+        if (subscriberIp != mqttConfigs::getLocalIp())
         {
 
             //TODO make back up dir per cleint
             //string pathTarget = "~/Desktop/" + subscriberIp;
 
-            string cmnd = "scp -r " + user + "@" + m_subscriberIp + ":" + m_pathToBackUp + " " + pathTarget;
+            string cmnd = "scp -r " + user + "@" + subscriberIp + ":" + backUpPath + " " + pathTarget;
             cout << "cmnd for sys is: " << cmnd << endl;
             system(cmnd.c_str());
         }
