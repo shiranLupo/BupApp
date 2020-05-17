@@ -56,7 +56,7 @@ namespace BupApp
         }
     }
 
-    void BupApp::appServer::setupConnection()
+    void BupApp::appServer::serverSetups()
     {
         cout << "Setup communication channles with service clients ...";
         mqtt::subscribe_options subOptions(NO_LOCAL);
@@ -72,6 +72,9 @@ namespace BupApp
             std::cerr << e.what() << '\n';
         }
         std::cout << "...OK" << endl;
+
+        string cmnd = "mkdir " + MAIN_BACKUP_PATH;
+        system(cmnd.c_str());
     }
 
     void BupApp::appServer::working()
@@ -161,7 +164,9 @@ namespace BupApp
             std::cout << "...OK" << endl;
 
             //TODOcreate dir per client
-            //currClient.setBackupTarget();
+            currClient.setBackupTarget(MAIN_BACKUP_PATH + "/"+currClient.getIp());
+            string cmnd = "mkdir " + currClient.getBackupPath();
+            system(cmnd.c_str());
 
             m_clients.push_back(currClient);
         }
@@ -198,12 +203,11 @@ namespace BupApp
         string backUpPath = m_msgPtr->get_payload();
         //TODO should find the client in the vector
         client currClient = searchForClient(subscriberIp);
-        string user = currClient.getUser();
 
         cout << "Server handles backUp request. msg was recieved from: " << subscriberIp << endl;
-        cout << "from this user : " << user << endl;
+        cout << "from this user : " << currClient.getUser() << endl;
+        cout << "to this path : " << currClient.getBackupPath() << endl;
 
-        string pathTarget = "~/Desktop/" + currClient.getPath();
         //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
 
         string cmnd;
@@ -212,13 +216,13 @@ namespace BupApp
 
             //TODO make back up dir per cleint
             //string pathTarget = "~/Desktop/" + subscriberIp;
-            cmnd = "scp -r " + user + "@" + subscriberIp + ":" + backUpPath + " " + pathTarget;
+            cmnd = "scp -r " + currClient.getUser() + "@" + subscriberIp + ":" + backUpPath + " " + currClient.getBackupPath();
             cout << "cmnd for sys is: " << cmnd << endl;
         }
         else
         {
             cout << "This is local backup: no need to use scp" << endl;
-            cmnd = "cp -r " + backUpPath + " " + pathTarget;
+            cmnd = "cp -r " + backUpPath + " " + currClient.getBackupPath();
         }
 
         system(cmnd.c_str());

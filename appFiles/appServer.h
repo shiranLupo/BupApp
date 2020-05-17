@@ -21,7 +21,8 @@
 using namespace std;
 using namespace utils;
 
-const string MAIN_BACKUP_PATH = "/home/shiranlupo/Desktop";
+
+const string MAIN_BACKUP_PATH = "/home/shiranlupo/Desktop/bupAppBackup";
 const string PUBLIC_KEY_PATH = "/home/shiranlupo/.ssh/id_rsa.pub";
 //TODO generic path shiranlupo= sever, get user
 const string SUBSCIBERS_LIST = "subscribersList";
