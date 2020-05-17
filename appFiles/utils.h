@@ -28,6 +28,7 @@ namespace utils
         string m_ip;
         string m_user;
         string m_pwd;
+        string m_backupPath;
 
     public:
         client(string msg);
@@ -37,8 +38,10 @@ namespace utils
         void printClient();
         string getIp();
         string getUser();
+        string getBackupPath();
         bool operator==(client lft);
         bool operator!=(client lft);
+        void setBackupTarget(string);
     };
 
     string getFullFilePath(string targetFile, string user);

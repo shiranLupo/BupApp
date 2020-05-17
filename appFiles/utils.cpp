@@ -48,6 +48,7 @@ namespace utils
         m_ip = (isIP4(tokens[0]) ? tokens[0] : "");
         m_user = (tokens.size() == 2 ? tokens[1] : "");
         m_pwd = (tokens.size() == 3 ? tokens[2] : "");
+        m_backupPath = "";
     }
 
     client::~client()
@@ -66,6 +67,7 @@ namespace utils
         this->m_ip = l.m_ip;
         this->m_user = l.m_user;
         this->m_pwd = l.m_pwd;
+        this->m_backupPath = l.m_backupPath;
     }
 
     string client::getIp()
@@ -105,26 +107,42 @@ namespace utils
 
     void addStrToFile(string strToAppend, string targetFile, string user)
     {
-        auto start = std::chrono::system_clock::now();
         std::ofstream out;
+        try
+        {
+            /* code */
+            // std::ios::app is the open mode "append" meaning
+            // new data will be written to the end of the file.
+            out.open(getFullFilePath(targetFile, user), std::ios::app);
 
-        // std::ios::app is the open mode "append" meaning
-        // new data will be written to the end of the file.
-        out.open(getFullFilePath(targetFile, user), std::ios::app);
+            std::string str = strToAppend;
+            out << str;
 
-        std::string str = strToAppend;
-        out << str;
-
-        out.close();
+            out.close();
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
+        }
     }
 
     string getTxtFromFile(string path)
     {
         fstream in_file(path);
-        if (!in_file)
+
+        try
         {
-            cout << "Error getTxtFromFile: can not open file" << endl;
-            return ("");
+            /* code */
+            if (!in_file)
+            {
+                throw;
+                cout << "Error getTxtFromFile: can not open file" << endl;
+                return ("");
+            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << '\n';
         }
 
         string ret;
@@ -134,6 +152,16 @@ namespace utils
             ret += c;
         }
         return (ret);
+    }
+    string client::getBackupPath()
+    {
+        return(m_backupPath);
+    }
+
+    void client::setBackupTarget(string path)
+    {
+        cout<<"setting this path : " <<path<< "for user " <<m_user<<endl;
+        m_backupPath = path;
     }
 
     bool isTxtExist(string txt, string filePath)
