@@ -24,7 +24,7 @@ namespace BupApp
 
         setClientInfo();
         connectToServer();
-        setupConnection();
+        clientSetups();
 
         cout << "Client initialization succeed ..." << endl
              << endl;
