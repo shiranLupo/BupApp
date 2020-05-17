@@ -68,7 +68,7 @@ namespace BupApp
         }
     }
 
-    void BupApp::appClient::setupConnection()
+    void BupApp::appClient::clientSetups()
     {
         try
         {

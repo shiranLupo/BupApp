@@ -43,7 +43,7 @@ namespace BupApp
 
         void setClientInfo();
         void connectToServer();
-        void setupConnection();
+        void clientSetups();
         void handleBackupRequest();
         void handleServerReplyMsg();
         void handlePubKeyMsg(string msg, string user);
