@@ -87,27 +87,8 @@ namespace BupApp
                  << endl
                  << endl;
             m_msgPtr = m_appServer->consume_message();
-            if (!m_msgPtr)
+            if ((!m_msgPtr) && !checkReconnect())
             {
-                //TODO check reconnect, seperate it to handle
-                // if (!m_appServer->is_connected())
-                // {
-                //     cout << "Lost connection. Attempting reconnect" << endl;
-                //     if (tryReconnect())
-                //     {
-                //         m_appServer->subscribe(m_publicChnl, QOS);
-                //         //TODO handle reconnection with all clients??
-                //         cout << "Reconnected" << endl;
-                //         continue;
-                //     }
-                //     else
-                //     {
-                //         cout << "Reconnect failed." << endl;
-                //         break;
-                //     }
-                // }
-                // else
-                //     break;
                 break;
             }
             else if (m_msgPtr->get_topic() == m_publicChnl) //&& !isClientExist(m_msgPtr->get_topic()))
@@ -132,6 +113,28 @@ namespace BupApp
 
         m_appServer->stop_consuming();
         //TODO usbscribing to all topics
+    }
+
+    bool BupApp::appServer::checkReconnect()
+    {
+        if (!m_appServer->is_connected())
+        {
+            cout << "Lost connection. Attempting reconnect" << endl;
+            if (tryReconnect())
+            {
+                m_appServer->subscribe(m_publicChnl, QOS);
+                //TODO handle reconnection with all clients??
+                cout << "Reconnected" << endl;
+                //server was succesfully reconnected
+                return (true);
+            }
+            else
+            {
+                cout << "Reconnect failed." << endl;
+            }
+        }
+        //no need to reconnect or failed to connect
+        return (false);
     }
 
     void BupApp::appServer::handleNewSubscriber()

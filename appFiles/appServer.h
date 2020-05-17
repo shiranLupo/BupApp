@@ -61,7 +61,7 @@ namespace BupApp
         bool isClientExist(client &);
         bool isClientExist(string ip);
         client searchForClient(string ip);
-        void checkReconnect();
+        bool checkReconnect();
         //  void mkSubscriberDir(); //TODO
         // setBackupTarget(); TODO
         bool tryReconnect();
