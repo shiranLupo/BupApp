@@ -87,7 +87,7 @@ namespace BupApp
                  << endl
                  << endl;
             m_msgPtr = m_appServer->consume_message();
-            if ((!m_msgPtr) && !checkReconnect())
+            if (!m_msgPtr && !checkReconnect())
             {
                 break;
             }
@@ -98,14 +98,12 @@ namespace BupApp
             }
             // TODO msg class
             // TODO seprete client class from utils
-            else
+            else if (isIP4(m_msgPtr->get_topic()))
             {
-                if (isIP4(m_msgPtr->get_topic()))
-                {
-                    cout << "msg topic is ip4 valid" << endl;
-                    handleBackupRequest();
-                    // TODO handleReplyBackupRequest();
-                }
+                m_threadPool.push_back(thread(&appServer::handleBackupRequest, this));
+                cout << "msg topic is ip4 valid" << endl;
+                // TODO handleReplyBackupRequest();
+
                 //TODO handle disconnect , do not remove from vector
                 //TODO handle usbscribe , remove from vector
             }

@@ -53,6 +53,7 @@ namespace BupApp
         mqtt::const_message_ptr m_msgPtr;
         string m_subscriberIp;
         string m_pathToBackUp;
+        vector<thread> m_threadPool;
 
         void connectToServer();
         void setupConnection();
