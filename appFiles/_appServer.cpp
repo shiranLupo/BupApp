@@ -79,7 +79,6 @@ namespace BupApp
 
     void BupApp::appServer::working()
     {
-
         cout << "Server starts consuming msgs: initialize.... " << endl;
         m_appServer->start_consuming();
         while (true)
@@ -102,9 +101,6 @@ namespace BupApp
             else if (isIP4(m_msgPtr->get_topic()))
             {
                 m_threadPool.push_back(thread(&appServer::handleBackupRequest, this));
-                cout << "msg topic is ip4 valid" << endl;
-                // TODO handleReplyBackupRequest();
-
                 //TODO handle disconnect , do not remove from vector
                 //TODO handle usbscribe , remove from vector
             }
@@ -121,7 +117,9 @@ namespace BupApp
             cout << "Lost connection. Attempting reconnect" << endl;
             if (tryReconnect())
             {
-                m_appServer->subscribe(m_publicChnl, QOS);
+                
+            m_appServer->subscribe(m_publicChnl, QOS, getSubOptions())->wait();
+               
                 //TODO handle reconnection with all clients??
                 cout << "Reconnected" << endl;
                 //server was succesfully reconnected
@@ -156,7 +154,9 @@ namespace BupApp
 
             std::cout << "Server subscribig to new client backup req channel...";
             mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);
-            topicPerClient.subscribe()->wait();
+            
+            topicPerClient.subscribe(getSubOptions())->wait();
+
             std::cout << "...OK" << endl;
 
             std::cout << "Sending new subscriber public key via private chnl...";
@@ -164,8 +164,8 @@ namespace BupApp
             std::cout << "...OK" << endl;
 
             //TODOcreate dir per client
-            currClient.setBackupTarget(MAIN_BACKUP_PATH + "/"+currClient.getIp());
-            string cmnd = "mkdir " + currClient.getBackupPath();
+            currClient.setBackupTarget(MAIN_BACKUP_PATH + "/" + currClient.getIp());
+            string cmnd = "mkdir " + currClient.getBackupPathTarget();
             system(cmnd.c_str());
 
             m_clients.push_back(currClient);
@@ -198,38 +198,41 @@ namespace BupApp
 
     void BupApp::appServer::handleBackupRequest()
     {
+        cout << this_thread::get_id() << endl;
 
         string subscriberIp = m_msgPtr->get_topic();
         string backUpPath = m_msgPtr->get_payload();
-        //TODO should find the client in the vector
-        client currClient = searchForClient(subscriberIp);
 
-        cout << "Server handles backUp request. msg was recieved from: " << subscriberIp << endl;
-        cout << "from this user : " << currClient.getUser() << endl;
-        cout << "to this path : " << currClient.getBackupPath() << endl;
-
-        //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
-
-        string cmnd;
-        if (subscriberIp != mqttConfigs::getLocalIp())
+        if (backUpPath.size() > 0)
         {
+            //TODO should find the client in the vector
+            client currClient = searchForClient(subscriberIp);
 
-            //TODO make back up dir per cleint
-            //string pathTarget = "~/Desktop/" + subscriberIp;
-            cmnd = "scp -r " + currClient.getUser() + "@" + subscriberIp + ":" + backUpPath + " " + currClient.getBackupPath();
-            cout << "cmnd for sys is: " << cmnd << endl;
+            cout << "Server handles backUp request. msg was recieved from: " << subscriberIp << endl;
+            cout << "from this user : " << currClient.getUser() << endl;
+            cout << "to this path : " << currClient.getBackupPathTarget() << endl;
+
+            //TODO check path + user working?>>>> user +"@" +mqttConfigs::getLocalIp()+":" + ":~/Desktop/"
+
+            string cmnd;
+            if (subscriberIp != mqttConfigs::getLocalIp())
+            {
+                cmnd = "scp -r " + currClient.getUser() + "@" + subscriberIp + ":" + backUpPath + " " + currClient.getBackupPathTarget();
+                cout << "cmnd for sys is: " << cmnd << endl;
+            }
+            else
+            {
+                cout << "This is local backup: no need to use scp" << endl;
+                cmnd = "cp -r " + backUpPath + " " + currClient.getBackupPathTarget();
+            }
+
+            string reply = execCmnd(cmnd);
+
+            cout << "publish reply to client ...";
+            m_appServer->publish(subscriberIp, reply, getQos(), getRetained())->wait();
+
+            cout << "OK" << endl;
         }
-        else
-        {
-            cout << "This is local backup: no need to use scp" << endl;
-            cmnd = "cp -r " + backUpPath + " " + currClient.getBackupPath();
-        }
-
-        system(cmnd.c_str());
-
-        cout << "Server handled backup request succed...." << endl
-             << endl
-             << endl;
     }
 
     client BupApp::appServer::searchForClient(string ip)

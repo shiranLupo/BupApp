@@ -13,6 +13,10 @@
 #include <fstream>   //get public key
 #include <iostream>  // std::cin, std::cout
 #include <algorithm> //find client
+#include <sys/types.h>
+#include <sys/wait.h> //backup succeed or not
+#include <sys/types.h>
+#include <unistd.h> //get pid
 
 #include "mqtt/async_client.h"
 #include "mqttConfigs.h"
@@ -20,7 +24,6 @@
 
 using namespace std;
 using namespace utils;
-
 
 const string MAIN_BACKUP_PATH = "/home/shiranlupo/Desktop/bupAppBackup";
 const string PUBLIC_KEY_PATH = "/home/shiranlupo/.ssh/id_rsa.pub";
