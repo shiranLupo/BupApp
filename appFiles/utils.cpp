@@ -153,14 +153,13 @@ namespace utils
         }
         return (ret);
     }
-    string client::getBackupPath()
+    string client::getBackupPathTarget()
     {
-        return(m_backupPath);
+        return (m_backupPath);
     }
 
     void client::setBackupTarget(string path)
     {
-        cout<<"setting this path : " <<path<< "for user " <<m_user<<endl;
         m_backupPath = path;
     }
 
@@ -174,6 +173,27 @@ namespace utils
         }
         string existFile = getTxtFromFile(filePath);
         return (existFile.find(txt) == string::npos ? false : true);
+    }
+
+    string execCmnd(string cmnd)
+    {
+
+        std::array<char, 128> buffer;
+        std::string result;
+        auto pipe = popen(cmnd.c_str(), "r");
+
+        if (!pipe)
+            throw std::runtime_error("popen() failed!");
+
+        while (!feof(pipe))
+        {
+            if (fgets(buffer.data(), 128, pipe) != nullptr)
+                result += buffer.data();
+        }
+
+        auto rc = pclose(pipe);
+        
+        return (rc == EXIT_SUCCESS ? "SUCCESS!" : "FAILED " + result);
     }
 
 } //end namespace utils
