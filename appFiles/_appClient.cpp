@@ -119,7 +119,7 @@ namespace BupApp
         while (true)
         {
             try
-            { 
+            {
                 cout << "Try consume massage..." << endl;
                 auto msgPtr = m_appClient->consume_message();
                 if (!msgPtr)
@@ -138,17 +138,21 @@ namespace BupApp
                         //TODO handlePublicKey
                         handlePubKeyMsg(msgPayload, m_clientInfo.getUser());
                     }
-                    else if (isMsgTypeOf("failed", msgPayload))
+                    else if (isMsgTypeOf("FAILED", msgPayload))
                     {
                         //TODO isTypeOf(string type, msg) //is this success?
 
-                        cout << "Backup failed! error info: " << msgPayload<< endl;
+                        cout << "Backup failed! error info: " << msgPayload << endl;
                     }
-                    else if (isMsgTypeOf("succeed", msgPayload))
+                    else if (isMsgTypeOf("SUCCEED", msgPayload))
                     {
                         //TODO isTypeOf(string type, msg) //is this success?
 
                         cout << "Backup succeed! " << endl;
+                    }
+                    else
+                    {
+                        cout << "msg is not handled . msg:" << msgTopic << msgPayload << endl;
                     }
                 }
                 else
