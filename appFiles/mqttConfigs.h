@@ -30,6 +30,7 @@ private:
     int m_qos;
     bool m_retained;
     mqtt::connect_options_ptr m_connectOpt;
+    mqtt::subscribe_options m_subOptions;
     
 
 public:
@@ -40,6 +41,8 @@ public:
     int getQos();
     bool getRetained();
     mqtt::connect_options_ptr getConnectionOpt();
+    mqtt::subscribe_options getSubOptions();
+
 
     bool getConfigs(); //will use ini file to get ip and broker address
 };
