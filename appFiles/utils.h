@@ -13,6 +13,9 @@
 #include <iterator>
 #include <fstream>
 #include <chrono>
+#include <memory>
+#include <stdexcept>
+#include <array>
 
 using namespace std;
 
@@ -38,7 +41,7 @@ namespace utils
         void printClient();
         string getIp();
         string getUser();
-        string getBackupPath();
+        string getBackupPathTarget();
         bool operator==(client lft);
         bool operator!=(client lft);
         void setBackupTarget(string);
@@ -48,7 +51,7 @@ namespace utils
     void addStrToFile(string strToAppend, string targetFile, string user);
     string getTxtFromFile(string path);
     bool isTxtExist(string txt, string filePath);
-
+    string execCmnd(string cmnd);
     class CLog
     {
     public:
