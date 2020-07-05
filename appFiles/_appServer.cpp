@@ -91,6 +91,7 @@ namespace BupApp
             {
                 break;
             }
+            //TODO chech this search 
             else if (m_msgPtr->get_topic() == m_publicChnl) //&& !isClientExist(m_msgPtr->get_topic()))
             {
                 //TODO if subscriber allredy exist do not operate handle
@@ -203,6 +204,7 @@ namespace BupApp
         string subscriberIp = m_msgPtr->get_topic();
         string backUpPath = m_msgPtr->get_payload();
 
+       //TODO is it neccerry???
         if (backUpPath.size() > 0)
         {
             //TODO should find the client in the vector
