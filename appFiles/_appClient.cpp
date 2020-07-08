@@ -137,6 +137,7 @@ namespace BupApp
 
                 if (msgTopic == m_privateChnl)
                 {
+                    cout<<"msgTopic == m_privateChnl"<<endl;
                     //TODO isTypeOf(string type, msg) //is this ssh?
                     if (isMsgTypeOf("ssh-rsa", msgPayload))
                     {
