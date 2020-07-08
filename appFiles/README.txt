@@ -8,3 +8,10 @@ g++ _appClient.cpp _clientMain.cpp utils.cpp mqttConfigs.cpp ../*.cpp ../mqtt/*.
  g++ _appServer.cpp _serverMain.cpp  mqttConfigs.cpp utils.cpp ../*.cpp ../mqtt/*.h -pthread  -lpaho-mqtt3a -lpaho-mqttpp3 -o BupAppServ
 
 ./BupApp [local_ip] [broker_ip]
+
+the client sends initialy connection request to the _server
+once the server recieve connection req via public chnnle
+server set folder and privat chnnle for client and send it the publickey for transform data
+
+clint should wait torecive key to finalize the connenction establishment
+

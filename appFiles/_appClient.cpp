@@ -46,6 +46,8 @@ namespace BupApp
         m_cmdThread.join();
         m_commThread.join();
         m_appClient->stop_consuming();
+        cout << "client was dissconnected" << endl;
+
     }
 
     void BupApp::appClient::connectToServer()
@@ -104,9 +106,8 @@ namespace BupApp
         m_commThread = thread{&appClient::handleServerReplyMsg, this};
     }
 
-    void ::BupApp::appClient::disconnect()
+    void BupApp::appClient::disconnect()
     {
-        cout << "dissconnect" << endl;
     }
 
     bool BupApp::appClient::isMsgTypeOf(string type, string &msg)
@@ -169,7 +170,7 @@ namespace BupApp
 
     void BupApp::appClient::handlePubKeyMsg(string msg, string user)
     {
-        cout << "PublicKey was recieve, handle publickey ...";
+        cout << "PublicKey was recieve, handle publickey ..."<<endl;
         m_serverPublicKey = msg;
 
         if (!utils::isTxtExist(msg, getFullFilePath(SERVER_PUBLIC_KEY_TARGET, user)))

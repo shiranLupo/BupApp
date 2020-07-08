@@ -222,7 +222,7 @@ namespace BupApp
             if (subscriberIp != mqttConfigs::getLocalIp())
             {
                 cmnd = "scp -r " + currClient.getUser() + "@" + subscriberIp + ":" + backUpPath + " " + currClient.getBackupPathTarget();
-               // cout << "cmnd for sys is: " << cmnd << endl;
+               cout << "cmnd for sys is: " << cmnd << endl;
             }
             else
             {
