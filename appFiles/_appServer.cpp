@@ -199,6 +199,11 @@ namespace BupApp
         // cout << pubkey.size() << endl<< pubkey << endl;
     }
 
+      bool isMsgTypeOf(string type, string &msg)
+    {
+        return (msg.find(type) != string::npos ? true : false);
+    }
+
     void BupApp::appServer::handleBackupRequest()
     {
         //cout << this_thread::get_id() << endl;
@@ -207,7 +212,8 @@ namespace BupApp
         string backUpPath = m_msgPtr->get_payload();
 
        //TODO is it neccerry???
-        if (backUpPath.size() >= 0)
+       
+        if (isMsgTypeOf("~",backUpPath))
         {
             //TODO should find the client in the vector
             client currClient = searchForClient(subscriberIp);
@@ -238,6 +244,8 @@ namespace BupApp
             cout << "OK" << endl;
         }
     }
+
+   
 
     client BupApp::appServer::searchForClient(string ip)
     {
