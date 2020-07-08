@@ -152,12 +152,12 @@ namespace BupApp
                     }
                     else
                     {
-                        cout << "msg is not handled . msg:" << msgTopic << msgPayload << endl;
+                        cout << "msg is not handled: " << msgPayload << endl;
                     }
                 }
                 else
                 {
-                    cout << "msg is not handled . msg:" << msgTopic << msgPayload << endl;
+                    cout << "msg was recieved not from privat channle: " << msgTopic <<" "<< msgPayload << endl;
                 }
             }
             catch (const std::exception &e)
@@ -186,7 +186,7 @@ namespace BupApp
         while (true)
         {
 
-            cout << "Enter path for backup..." << endl;
+            cout << "Enter path for backup. Path format: ~/[folder2]/[folder1]..." << endl;
             string path;
             getline(std::cin, path);
 

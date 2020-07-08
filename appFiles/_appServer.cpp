@@ -66,6 +66,8 @@ namespace BupApp
             // Subscribe to the topic using "no local" so that
             // we don't get own messages sent back to us
             m_appServer->subscribe(m_publicChnl, QOS, subOptions)->wait();
+            //clear public channle
+            //m_appServer->publish(m_publicChnl,new byte[0],QOS,RETAINED);
         }
         catch (const std::exception &e)
         {
@@ -199,7 +201,7 @@ namespace BupApp
 
     void BupApp::appServer::handleBackupRequest()
     {
-        cout << this_thread::get_id() << endl;
+        //cout << this_thread::get_id() << endl;
 
         string subscriberIp = m_msgPtr->get_topic();
         string backUpPath = m_msgPtr->get_payload();
@@ -220,7 +222,7 @@ namespace BupApp
             if (subscriberIp != mqttConfigs::getLocalIp())
             {
                 cmnd = "scp -r " + currClient.getUser() + "@" + subscriberIp + ":" + backUpPath + " " + currClient.getBackupPathTarget();
-                cout << "cmnd for sys is: " << cmnd << endl;
+               // cout << "cmnd for sys is: " << cmnd << endl;
             }
             else
             {

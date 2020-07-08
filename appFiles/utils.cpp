@@ -100,8 +100,8 @@ namespace utils
     //NOTICE: per OS (ubunto and resberrian)
     string getFullFilePath(string targetFile, string user)
     {
-        cout << "getFullFilePath : "
-             << "/home/" << user + "/" << targetFile << endl;
+       // cout << "getFullFilePath : "
+        //     << "/home/" << user + "/" << targetFile << endl;
         return ("/home/" + user + "/" + targetFile);
     }
 
