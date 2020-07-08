@@ -15,3 +15,6 @@ server set folder and privat chnnle for client and send it the publickey for tra
 
 clint should wait torecive key to finalize the connenction establishment
 
+retained = true other wise pub key  recievd to client is not stable, no_local= true for both
+ 
+

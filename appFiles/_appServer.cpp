@@ -207,7 +207,7 @@ namespace BupApp
         string backUpPath = m_msgPtr->get_payload();
 
        //TODO is it neccerry???
-        if (backUpPath.size() > 0)
+        if (backUpPath.size() >= 0)
         {
             //TODO should find the client in the vector
             client currClient = searchForClient(subscriberIp);
