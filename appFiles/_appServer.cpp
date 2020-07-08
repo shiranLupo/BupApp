@@ -85,7 +85,7 @@ namespace BupApp
         m_appServer->start_consuming();
         while (true)
         {
-            cout << "Try consume msg..." << endl
+            cout << "Waiting for service request..." << endl
                  << endl
                  << endl;
             m_msgPtr = m_appServer->consume_message();

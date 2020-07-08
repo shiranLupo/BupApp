@@ -125,7 +125,7 @@ namespace BupApp
         {
             try
             {
-                cout << "Try consume massage..." << endl;
+                cout << "Waiting for server response..." << endl;
                 auto msgPtr = m_appClient->consume_message();
                 if (!msgPtr)
                 {
@@ -196,7 +196,7 @@ namespace BupApp
         {
             try
             {
-                cout << "Try consume massage..." << endl;
+                cout << "Waiting for server response..." << endl;
                 auto msgPtr = m_appClient->consume_message();
                 if (!msgPtr)
                 {
