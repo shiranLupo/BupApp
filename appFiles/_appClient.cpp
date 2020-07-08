@@ -25,9 +25,18 @@ namespace BupApp
         setClientInfo();
         connectToServer();
         clientSetups();
+        getPublicKeyMsg();
 
         cout << "Client initialization succeed ..." << endl
              << endl;
+    }
+
+    appClient::~appClient()
+    {
+        m_cmdThread.join();
+        m_commThread.join();
+        m_appClient->stop_consuming();
+        cout << "client was dissconnected" << endl;
     }
 
     void appClient::setClientInfo()
@@ -39,15 +48,6 @@ namespace BupApp
              << endl;
         m_subscribeMsg = mqttConfigs::getLocalIp() + " " + clientInfo;
         m_clientInfo = client(m_subscribeMsg);
-    }
-
-    appClient::~appClient()
-    {
-        m_cmdThread.join();
-        m_commThread.join();
-        m_appClient->stop_consuming();
-        cout << "client was dissconnected" << endl;
-
     }
 
     void BupApp::appClient::connectToServer()
@@ -97,6 +97,10 @@ namespace BupApp
         }
     }
 
+    void BupApp::appClient::getPubicKey()
+    {
+    }
+
     void BupApp::appClient::working()
     {
 
@@ -115,9 +119,9 @@ namespace BupApp
         return (msg.find(type) != string::npos ? true : false);
     }
 
-    void BupApp::appClient::handleServerReplyMsg()
+    void BupApp::appClient::getPublicKeyMsg()
     {
-        while (true)
+        while (!GOT_PUBLIC_KEY)
         {
             try
             {
@@ -138,8 +142,74 @@ namespace BupApp
                     {
                         //TODO handlePublicKey
                         handlePubKeyMsg(msgPayload, m_clientInfo.getUser());
+                        GOT_PUBLIC_KEY = true;
                     }
-                    else if (isMsgTypeOf("FAILED", msgPayload))
+                }
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
+    }
+
+    void BupApp::appClient::handlePubKeyMsg(string msg, string user)
+    {
+        cout << "PublicKey was recieve, handle publickey ..." << endl;
+        m_serverPublicKey = msg;
+
+        if (!utils::isTxtExist(msg, getFullFilePath(SERVER_PUBLIC_KEY_TARGET, user)))
+        {
+            utils::addStrToFile(m_serverPublicKey, SERVER_PUBLIC_KEY_TARGET, user);
+        }
+        cout << "...OK" << endl;
+    }
+
+
+    void BupApp::appClient::handleBackupRequest()
+    {
+        cout << "PublicKey was recieve, handle publickey ...";
+
+        while (true)
+        {
+
+            cout << "Enter path for backup. Path format: ~/[folder2]/[folder1]..." << endl;
+            string path;
+            getline(std::cin, path);
+
+            try
+            {
+                cout << "Sending backup path msg to server...";
+                m_appClient->publish(m_privateChnl, path, getQos(), getRetained())->wait();
+                cout << "...OK" << endl;
+            }
+
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+        }
+    }
+
+    void BupApp::appClient::handleServerReplyMsg()
+    {
+        while (true)
+        {
+            try
+            {
+                cout << "Try consume massage..." << endl;
+                auto msgPtr = m_appClient->consume_message();
+                if (!msgPtr)
+                {
+                    break;
+                }
+
+                string msgTopic = msgPtr->get_topic();
+                string msgPayload = msgPtr->get_payload();
+
+                if (msgTopic == m_privateChnl)
+                {
+                   if (isMsgTypeOf("FAILED", msgPayload))
                     {
                         //TODO isTypeOf(string type, msg) //is this success?
 
@@ -168,41 +238,5 @@ namespace BupApp
         }
     }
 
-    void BupApp::appClient::handlePubKeyMsg(string msg, string user)
-    {
-        cout << "PublicKey was recieve, handle publickey ..."<<endl;
-        m_serverPublicKey = msg;
-
-        if (!utils::isTxtExist(msg, getFullFilePath(SERVER_PUBLIC_KEY_TARGET, user)))
-        {
-            utils::addStrToFile(m_serverPublicKey, SERVER_PUBLIC_KEY_TARGET, user);
-        }
-        cout << "...OK" << endl;
-    }
-
-    void BupApp::appClient::handleBackupRequest()
-    {
-        cout << "PublicKey was recieve, handle publickey ...";
-
-        while (true)
-        {
-
-            cout << "Enter path for backup. Path format: ~/[folder2]/[folder1]..." << endl;
-            string path;
-            getline(std::cin, path);
-
-            try
-            {
-                cout << "Sending backup path msg to server...";
-                m_appClient->publish(m_privateChnl, path, getQos(), getRetained())->wait();
-                cout << "...OK" << endl;
-            }
-
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << '\n';
-            }
-        }
-    }
 
 } //end of namespace BupApp

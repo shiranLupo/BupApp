@@ -19,6 +19,15 @@ using namespace std;
 namespace BupApp
 {
 
+    static bool GOT_PUBLIC_KEY = false;
+
+    enum msgType
+    {
+        PUBLIC_KEY,
+
+
+    };
+
     const string SERVER_PUBLIC_KEY_TARGET = ".ssh/authorized_keys";
     const string SUBSCIBERS_LIST = "subscribersList";
 
@@ -44,8 +53,10 @@ namespace BupApp
         void setClientInfo();
         void connectToServer();
         void clientSetups();
+        void getPubicKey();
         void handleBackupRequest();
         void handleServerReplyMsg();
+        void getPublicKeyMsg();
         void handlePubKeyMsg(string msg, string user);
 
     public:
