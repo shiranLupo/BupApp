@@ -25,7 +25,7 @@ namespace BupApp
         setClientInfo();
         connectToServer();
         clientSetups();
-        getPublicKeyMsg();
+        getPublicKeyMsg(); //TODO should me init time limited? as no cli will wait to loop for ever
 
         cout << "Client initialization succeed ..." << endl
              << endl;
@@ -36,7 +36,10 @@ namespace BupApp
         m_cmdThread.join();
         m_commThread.join();
         m_appClient->stop_consuming();
-        cout << "client was dissconnected" << endl;
+        m_appClient->unsubscribe(m_privateChnl);
+        m_appClient->unsubscribe(m_publicChnl);
+        m_appClient->disconnect()->wait();
+        cout << "client is  dissconnecting" << endl;
     }
 
     void appClient::setClientInfo()
@@ -97,9 +100,6 @@ namespace BupApp
         }
     }
 
-    void BupApp::appClient::getPubicKey()
-    {
-    }
 
     void BupApp::appClient::working()
     {
@@ -169,14 +169,13 @@ namespace BupApp
 
     void BupApp::appClient::handleBackupRequest()
     {
-        cout << "PublicKey was recieve, handle publickey ...";
 
         while (true)
         {
 
             cout << "Enter path for backup. Path format: ~/[folder2]/[folder1]..." << endl;
             string path;
-            getline(std::cin, path);
+            getline(std::cin, path); //TODO is it better to get pathi via argv?
 
             try
             {
