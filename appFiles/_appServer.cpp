@@ -198,7 +198,7 @@ namespace BupApp
         cout << "OK" << endl;
         // cout << pubkey.size() << endl<< pubkey << endl;
     }
-
+// TODO clean here :)
       bool isMsgTypeOf(string type, string &msg)
     {
         return (msg.find(type) != string::npos ? true : false);

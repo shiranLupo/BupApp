@@ -16,5 +16,8 @@ server set folder and privat chnnle for client and send it the publickey for tra
 clint should wait torecive key to finalize the connenction establishment
 
 retained = true other wise pub key  recievd to client is not stable, no_local= true for both
- 
+
+
+LOG- todo boom! bug failed msg no controll was solved locally- check also on raspi
+bug- sync std out for client : enter backup path printed not on time...sync it to be after BUP succeed msg recieved. use flag?
 
