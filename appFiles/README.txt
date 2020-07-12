@@ -20,4 +20,4 @@ retained = true other wise pub key  recievd to client is not stable, no_local= t
 
 LOG- todo boom! bug failed msg no controll was solved locally- check also on raspi
 bug- sync std out for client : enter backup path printed not on time...sync it to be after BUP succeed msg recieved. use flag?
-
+TODO -no need pw in access

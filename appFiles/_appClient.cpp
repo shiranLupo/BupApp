@@ -20,7 +20,7 @@ namespace BupApp
 
     void BupApp::appClient::init()
     {
-        cout << "Starting app local BupApp client..." << endl;
+        cout << "Starting local BupApp client..." << endl;
 
         setClientInfo();
         connectToServer();
@@ -155,7 +155,7 @@ namespace BupApp
 
     void BupApp::appClient::handlePubKeyMsg(string msg, string user)
     {
-        cout << "PublicKey was recieve, handle publickey ..." << endl;
+        cout << "PublicKey was recieve, handle publickey ...";
         m_serverPublicKey = msg;
 
         if (!utils::isTxtExist(msg, getFullFilePath(SERVER_PUBLIC_KEY_TARGET, user)))
