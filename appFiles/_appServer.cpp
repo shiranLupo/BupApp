@@ -236,9 +236,13 @@ namespace BupApp
                 cmnd = "cp -r " + backUpPath + " " + currClient.getBackupPathTarget();
             }
 
-            string reply = execCmnd(cmnd);
+            string reply = backUpPath + " backup " + execCmnd(cmnd) ;
+
 
             cout << "publish reply to client ...";
+            CLogger::GetLogger()->Write("publish reply to client ...");
+            CLogger::GetLogger()->Write(reply);
+            
             m_appServer->publish(subscriberIp, reply, getQos(), getRetained())->wait();
 
             cout << "OK" << endl;

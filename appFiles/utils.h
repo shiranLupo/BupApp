@@ -2,6 +2,7 @@
 #ifndef _utils_h
 #define _utils_h
 
+#include <time.h>
 #include <arpa/inet.h> //ip4 vlaidation
 #include <iostream>
 #include <string>
@@ -16,6 +17,7 @@
 #include <memory>
 #include <stdexcept>
 #include <array>
+#include <stdarg.h> //logger
 
 using namespace std;
 
@@ -76,6 +78,37 @@ namespace utils
         CLog();
         static bool m_bInitialised;
         static int m_nLevel;
+    };
+
+    class CLogger
+    {
+    public:
+        void Write(const std::string &sMessage);
+
+        //  @param format string for the message to be logged.
+       void Write(const char *format, ...);
+
+        // << overloaded function to Logs a message
+        CLogger &operator<<(const string &sMessage);
+
+        static CLogger *GetLogger();
+
+        ~CLogger();
+
+    private:
+  
+        CLogger();
+   
+        CLogger(const CLogger &){}; 
+    
+        CLogger &operator=(const CLogger &) 
+        { return *this; }; 
+    
+        static const std::string m_sFileName;
+
+    //   Singleton logger class object pointer.   
+        static CLogger *m_pThis;
+        static ofstream m_Logfile;
     };
 
 } //end namespace  utils

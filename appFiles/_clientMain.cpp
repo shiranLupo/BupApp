@@ -11,8 +11,10 @@ int main(int argc, char const *argv[])
 {
     BupApp::appClient pc(argc, argv);
     pc.init();
+    string msg("hi im log1");
+
     pc.working();
-    pc.disconnect();
+     pc.disconnect();
     
     return 0;
 }

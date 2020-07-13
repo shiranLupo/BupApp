@@ -100,7 +100,6 @@ namespace BupApp
         }
     }
 
-
     void BupApp::appClient::working()
     {
 
@@ -165,7 +164,6 @@ namespace BupApp
         cout << "...OK" << endl;
     }
 
-
     void BupApp::appClient::handleBackupRequest()
     {
 
@@ -196,7 +194,7 @@ namespace BupApp
         {
             try
             {
-                cout << "Waiting for server response..." << endl;
+                CLogger::GetLogger()->Write("handleServerReplyMsg: Waiting for server response...");
                 auto msgPtr = m_appClient->consume_message();
                 if (!msgPtr)
                 {
@@ -208,26 +206,17 @@ namespace BupApp
 
                 if (msgTopic == m_privateChnl)
                 {
-                   if (isMsgTypeOf("FAILED", msgPayload))
-                    {
-                        //TODO isTypeOf(string type, msg) //is this success?
-
-                        cout << "Backup failed! error info: " << msgPayload << endl;
-                    }
-                    else if (isMsgTypeOf("SUCCEED", msgPayload))
-                    {
-                        //TODO isTypeOf(string type, msg) //is this success?
-
-                        cout << "Backup succeed! " << endl;
-                    }
-                    else
-                    {
-                        cout << "msg is not handled: " << msgPayload << endl;
-                    }
+                    //get success or fail msg about backup
+                    cout << msgPayload << endl;
+                    CLogger::GetLogger()->Write(m_msgPayload); 
                 }
                 else
                 {
-                    cout << "msg was recieved not from privat channle: " << msgTopic <<" "<< msgPayload << endl;
+                    //get msg from public chnl  
+                    CLogger::GetLogger()->Write("handleServerReplyMsg: msg was recieved not from privat channle: ");
+                    CLogger::GetLogger()->Write(msgTopic + msgPayload + "\n");
+
+                    cout << "msg was recieved not from privat channle: " << msgTopic << " " << msgPayload << endl;
                 }
             }
             catch (const std::exception &e)
@@ -236,6 +225,5 @@ namespace BupApp
             }
         }
     }
-
 
 } //end of namespace BupApp
