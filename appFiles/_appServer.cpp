@@ -88,12 +88,13 @@ namespace BupApp
             cout << "Waiting for service request..." << endl
                  << endl
                  << endl;
+            //waiting for new msg. therefore this msg does not need sync thread -no racing condition
             m_msgPtr = m_appServer->consume_message();
             if (!m_msgPtr && !checkReconnect())
             {
                 break;
             }
-            //TODO chech this search 
+            //TODO chech this search
             else if (m_msgPtr->get_topic() == m_publicChnl) //&& !isClientExist(m_msgPtr->get_topic()))
             {
                 //TODO if subscriber allredy exist do not operate handle
@@ -120,9 +121,9 @@ namespace BupApp
             cout << "Lost connection. Attempting reconnect" << endl;
             if (tryReconnect())
             {
-                
-            m_appServer->subscribe(m_publicChnl, QOS, getSubOptions())->wait();
-               
+
+                m_appServer->subscribe(m_publicChnl, QOS, getSubOptions())->wait();
+
                 //TODO handle reconnection with all clients??
                 cout << "Reconnected" << endl;
                 //server was succesfully reconnected
@@ -157,7 +158,7 @@ namespace BupApp
 
             std::cout << "Server subscribig to new client backup req channel...";
             mqtt::topic topicPerClient(*m_appServer, currClient.getIp(), QOS, RETAINED);
-            
+
             topicPerClient.subscribe(getSubOptions())->wait();
 
             std::cout << "...OK" << endl;
@@ -198,8 +199,8 @@ namespace BupApp
         cout << "OK" << endl;
         // cout << pubkey.size() << endl<< pubkey << endl;
     }
-// TODO clean here :)
-      bool isMsgTypeOf(string type, string &msg)
+    // TODO clean here :)
+    bool isMsgTypeOf(string type, string &msg)
     {
         return (msg.find(type) != string::npos ? true : false);
     }
@@ -207,13 +208,14 @@ namespace BupApp
     void BupApp::appServer::handleBackupRequest()
     {
         //cout << this_thread::get_id() << endl;
-
+        // mutual source- member msg
         string subscriberIp = m_msgPtr->get_topic();
         string backUpPath = m_msgPtr->get_payload();
 
-       //TODO is it neccerry???
-       
-        if (isMsgTypeOf("~",backUpPath))
+        //TODO is it neccerry???
+        // starts with ~ => this is backup msg
+        if (backUpPath.find_first_of("~") == 0)
+        // if (isMsgTypeOf("~", backUpPath))
         {
             //TODO should find the client in the vector
             client currClient = searchForClient(subscriberIp);
@@ -228,7 +230,7 @@ namespace BupApp
             if (subscriberIp != mqttConfigs::getLocalIp())
             {
                 cmnd = "scp -r " + currClient.getUser() + "@" + subscriberIp + ":" + backUpPath + " " + currClient.getBackupPathTarget();
-               cout << "cmnd for sys is: " << cmnd << endl;
+                cout << "cmnd for sys is: " << cmnd << endl;
             }
             else
             {
@@ -236,20 +238,17 @@ namespace BupApp
                 cmnd = "cp -r " + backUpPath + " " + currClient.getBackupPathTarget();
             }
 
-            string reply = backUpPath + " backup " + execCmnd(cmnd) ;
-
+            string reply = "Msg from Server: " + backUpPath + " backup " + execCmnd(cmnd);
 
             cout << "publish reply to client ...";
             CLogger::GetLogger()->Write("publish reply to client ...");
             CLogger::GetLogger()->Write(reply);
-            
+
             m_appServer->publish(subscriberIp, reply, getQos(), getRetained())->wait();
 
             cout << "OK" << endl;
         }
     }
-
-   
 
     client BupApp::appServer::searchForClient(string ip)
     {
